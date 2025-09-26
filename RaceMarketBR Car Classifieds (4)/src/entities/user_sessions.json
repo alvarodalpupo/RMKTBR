@@ -1,0 +1,63 @@
+
+{
+  "name": "user_sessions",
+  "options": {
+    "validator": {
+      "$jsonSchema": {
+        "bsonType": "object",
+        "title": "UserSession",
+        "description": "Sessões ativas e histórico de login dos usuários",
+        "additionalProperties": true,
+        "required": ["user_id", "session_id", "created_at"],
+        "properties": {
+          "user_id": {
+            "bsonType": "string",
+            "description": "ID do usuário"
+          },
+          "session_id": {
+            "bsonType": "string",
+            "description": "ID único da sessão"
+          },
+          "ip_address": {
+            "bsonType": "string",
+            "description": "Endereço IP do login"
+          },
+          "user_agent": {
+            "bsonType": "string",
+            "description": "Navegador/dispositivo usado"
+          },
+          "device_type": {
+            "bsonType": "string",
+            "enum": ["desktop", "mobile", "tablet"],
+            "description": "Tipo de dispositivo"
+          },
+          "location": {
+            "bsonType": "string",
+            "description": "Localização aproximada do login"
+          },
+          "is_active": {
+            "bsonType": "bool",
+            "description": "Se a sessão está ativa"
+          },
+          "created_at": {
+            "bsonType": "string",
+            "title": "datetime",
+            "description": "Data/hora do login"
+          },
+          "expires_at": {
+            "bsonType": "string",
+            "title": "datetime",
+            "description": "Data/hora de expiração da sessão"
+          },
+          "ended_at": {
+            "bsonType": "string",
+            "title": "datetime",
+            "description": "Data/hora do logout"
+          }
+        }
+      }
+    },
+    "validationLevel": "moderate",
+    "validationAction": "warn"
+  }
+}

@@ -1,0 +1,86 @@
+
+{
+  "name": "user_profiles",
+  "options": {
+    "validator": {
+      "$jsonSchema": {
+        "bsonType": "object",
+        "title": "UserProfile",
+        "description": "Perfis expandidos de usuários do RaceMarketBR",
+        "additionalProperties": true,
+        "required": ["user_id", "created_at", "updated_at"],
+        "properties": {
+          "user_id": {
+            "bsonType": "string",
+            "description": "ID do usuário vinculado ao sistema de autenticação"
+          },
+          "avatar": {
+            "bsonType": "string",
+            "description": "URL da foto de perfil do usuário"
+          },
+          "biografia": {
+            "bsonType": "string",
+            "maxLength": 500,
+            "description": "Biografia/descrição pessoal do usuário"
+          },
+          "telefone": {
+            "bsonType": "string",
+            "description": "Número de telefone do usuário"
+          },
+          "cidade": {
+            "bsonType": "string",
+            "description": "Cidade do usuário"
+          },
+          "uf": {
+            "bsonType": "string",
+            "description": "Estado do usuário"
+          },
+          "preferencias_notificacao": {
+            "bsonType": "object",
+            "description": "Preferências de notificação do usuário",
+            "properties": {
+              "email_anuncios": { "bsonType": "bool" },
+              "email_promocoes": { "bsonType": "bool" },
+              "push_notifications": { "bsonType": "bool" },
+              "sms_notifications": { "bsonType": "bool" }
+            }
+          },
+          "configuracoes_privacidade": {
+            "bsonType": "object",
+            "description": "Configurações de privacidade",
+            "properties": {
+              "perfil_publico": { "bsonType": "bool" },
+              "mostrar_telefone": { "bsonType": "bool" },
+              "mostrar_email": { "bsonType": "bool" }
+            }
+          },
+          "last_login": {
+            "bsonType": "string",
+            "title": "datetime",
+            "description": "Último login do usuário"
+          },
+          "email_verified": {
+            "bsonType": "bool",
+            "description": "Se o email foi verificado"
+          },
+          "two_factor_enabled": {
+            "bsonType": "bool",
+            "description": "Se a autenticação de dois fatores está ativa"
+          },
+          "created_at": {
+            "bsonType": "string",
+            "title": "datetime",
+            "description": "Data de criação do perfil"
+          },
+          "updated_at": {
+            "bsonType": "string",
+            "title": "datetime",
+            "description": "Data da última atualização"
+          }
+        }
+      }
+    },
+    "validationLevel": "moderate",
+    "validationAction": "warn"
+  }
+}
