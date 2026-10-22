@@ -1,7 +1,7 @@
 
 import { create } from 'zustand'
 
-interface SystemConfig {
+export interface SystemConfig {
   // Configurações de Moderação
   auto_approval: boolean
   require_phone_verification: boolean
@@ -107,7 +107,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       }))
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -127,7 +127,7 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
       const importedConfig = JSON.parse(configJson)
       set({ config: { ...defaultConfig, ...importedConfig } })
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

@@ -1,8 +1,8 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Eye, MessageCircleDashed as MessageCircle, ArrowLeft, Share2, Heart, Flame, Zap, CheckCircle, Flag, Phone, Star, Settings } from 'lucide-react';
+import { MapPin, Calendar, MessageCircleDashed as MessageCircle, ArrowLeft, Share2, Heart, Flame, Zap, CheckCircle, Flag, Star } from 'lucide-react';
 import { useListingsStore } from '../stores/listingsStore';
 import PowerTorqueBar from '../components/PowerTorqueBar';
 import toast from 'react-hot-toast';
@@ -16,13 +16,14 @@ const AnuncioDetalhes = () => {
 
   const listing = listings.find((l) => l.id === id);
 
+  const listingId = listing?.id;
   useEffect(() => {
-    // Só incrementa as visualizações uma vez por sessão
-    if (listing && !viewsIncrementedRef.current) {
-      incrementViews(listing.id);
+    // Conta a visualização uma única vez por abertura da página
+    if (listingId && !viewsIncrementedRef.current) {
+      incrementViews(listingId);
       viewsIncrementedRef.current = true;
     }
-  }, [listing?.id]); // Dependência apenas do ID do listing
+  }, [listingId, incrementViews]);
 
   if (!listing) {
     return (
@@ -97,10 +98,12 @@ const AnuncioDetalhes = () => {
   };
 
   const handleWhatsAppClick = () => {
-    if (listing.telefone) {
+    const digits = (listing.telefone || '').replace(/\D/g, '');
+    if (digits.length >= 10) {
       incrementWhatsAppClicks(listing.id);
+      const phone = digits.startsWith('55') && digits.length > 11 ? digits : `55${digits}`;
       const message = encodeURIComponent(`Olá! Tenho interesse no seu ${listing.titulo} anunciado no RaceMarketBR por ${listing.preco}.`);
-      window.open(`https://wa.me/55${listing.telefone}?text=${message}`, '_blank');
+      window.open(`https://wa.me/${phone}?text=${message}`, '_blank', 'noopener,noreferrer');
     } else {
       toast.error('Telefone não disponível');
     }
@@ -125,6 +128,7 @@ const AnuncioDetalhes = () => {
   };
 
   const tractionInfo = getTractionInfo();
+  const isSold = listing.status === 'vendido';
 
   return (
     <div className="pt-20 min-h-screen bg-primary-black">
@@ -247,6 +251,11 @@ const AnuncioDetalhes = () => {
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                {isSold ?
+                <div className="w-full bg-green-600/10 border border-green-600/40 text-green-400 font-montserrat font-bold py-4 rounded-lg flex items-center justify-center space-x-2">
+                    <CheckCircle className="w-5 h-5" />
+                    <span>Veículo vendido</span>
+                  </div> :
                 <button
                   onClick={handleWhatsAppClick}
                   className="w-full bg-green-600 hover:bg-green-700 text-white font-montserrat font-bold py-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
@@ -254,6 +263,7 @@ const AnuncioDetalhes = () => {
                   <MessageCircle className="w-5 h-5" />
                   <span>Chamar no WhatsApp</span>
                 </button>
+                }
 
                 <div className="grid grid-cols-2 gap-3">
                   <button
@@ -313,25 +323,27 @@ const AnuncioDetalhes = () => {
             </div>
 
             {/* Stats */}
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            <div className="bg-primary-gray rounded-2xl p-6 border border-gray-800">
+              <h3 className="font-bebas text-xl text-white mb-4">INFORMAÇÕES</h3>
+              <dl className="grid grid-cols-2 gap-4 font-montserrat text-sm">
+                <div>
+                  <dt className="text-gray-400">Visualizações</dt>
+                  <dd className="text-white font-bold">{listing.views}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">Publicado em</dt>
+                  <dd className="text-white font-bold">{new Date(listing.created_at).toLocaleDateString('pt-BR')}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">Aceita troca</dt>
+                  <dd className="text-white font-bold">{listing.aceita_troca ? 'Sim' : 'Não'}</dd>
+                </div>
+                <div>
+                  <dt className="text-gray-400">Ano</dt>
+                  <dd className="text-white font-bold">{listing.ano}</dd>
+                </div>
+              </dl>
+            </div>
 
             {/* Description */}
             {listing.descricao &&
@@ -344,26 +356,16 @@ const AnuncioDetalhes = () => {
             }
 
             {/* Contact Info */}
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            {!isSold &&
+            <div className="bg-primary-gray rounded-2xl p-6 border border-gray-800">
+                <h3 className="font-bebas text-xl text-white mb-3">NEGOCIE COM SEGURANÇA</h3>
+                <ul className="space-y-2 text-gray-400 font-montserrat text-sm list-disc pl-5">
+                  <li>Veja o carro pessoalmente antes de pagar qualquer valor.</li>
+                  <li>Desconfie de preços muito abaixo do mercado e de pedidos de sinal.</li>
+                  <li>Consulte a situação do veículo (débitos, restrições) no Detran do seu estado.</li>
+                </ul>
+              </div>
+            }
           </motion.div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {Car, BarChart3, Bell, Plus, Edit3, Trash2, Eye, MessageCircleDashed as MessageCircle, Clock, CheckCircle, X, AlertTriangle, Star, Calendar, MapPin, Phone, Mail, User, Settings, Shield, Camera, Upload, Save, Smartphone, Monitor, Tablet, LogOut, Key, Verified, AlertCircle} from 'lucide-react'
+import { Car, BarChart3, Bell, Plus, Edit3, Trash2, Eye, MessageCircleDashed as MessageCircle, Clock, CheckCircle, X, Calendar, Mail, User, Shield, Camera, Save, Smartphone, Monitor, Tablet, LogOut, Key, Verified, AlertCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { useUserSessions } from '../hooks/useUserSessions'
@@ -13,7 +13,7 @@ import toast from 'react-hot-toast'
 
 const Painel = () => {
   const { user, isAuthenticated, signOut } = useAuth()
-  const { profile, loading: profileLoading, updating, updateProfile, uploadAvatar, removeAvatar } = useUserProfile()
+  const { profile, updating, updateProfile, uploadAvatar, removeAvatar } = useUserProfile()
   const { sessions, loading: sessionsLoading, endSession, endAllOtherSessions } = useUserSessions()
   const { listings, deleteListing, updateListing } = useListingsStore()
   const { notifications, markAsRead, markAllAsRead, deleteNotification } = useNotificationsStore()

@@ -2,15 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import {Upload, X, Car, MapPin, DollarSign, FileText, Phone, Camera, Plus, Zap, Settings, AlertTriangle, RefreshCw, Shield, Lock, UserPlus} from 'lucide-react';
+import { Upload, X, Car, MapPin, FileText, Phone, Camera, Plus, Zap, Settings, AlertTriangle, RefreshCw, Shield, Lock, UserPlus } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { useListingsStore } from '../stores/listingsStore';
 import { estadosCidades, buscarCidadesPorEstado, formatarNomeEstado } from '../data/estados-cidades';
-import { formatarPreco, extrairValorNumerico, formatarTelefone, validarPreco, validarTelefone } from '../utils/formatters';
+import { formatarPreco, formatarTelefone, validarPreco, validarTelefone } from '../utils/formatters';
 import CidadeSelector from '../components/CidadeSelector';
 import TrustBadge from '../components/TrustBadge';
 import SecurityTooltip from '../components/SecurityTooltip';
-import SocialProofCounter from '../components/SocialProofCounter';
 import toast from 'react-hot-toast';
 
 const AnuncieSeuCarro = () => {
@@ -347,8 +346,6 @@ const AnuncieSeuCarro = () => {
               }
             </p>
 
-            {/* Social Proof Counters */}
-            <SocialProofCounter />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
@@ -457,7 +454,7 @@ const AnuncieSeuCarro = () => {
                     <button
                       key={categoria.id}
                       type="button"
-                      onClick={() => handleCategoryChange(categoria.id as any)}
+                      onClick={() => handleCategoryChange(categoria.id as Parameters<typeof handleCategoryChange>[0])}
                       className={`p-4 rounded-lg border-2 transition-all font-montserrat font-600 ${
                         formData.categoria === categoria.id
                           ? `border-${categoria.color} bg-${categoria.color}/10 text-${categoria.color}`
@@ -656,7 +653,7 @@ const AnuncieSeuCarro = () => {
                     <button
                       key={tipo.id}
                       type="button"
-                      onClick={() => handleTracaoChange(tipo.id as any)}
+                      onClick={() => handleTracaoChange(tipo.id as Parameters<typeof handleTracaoChange>[0])}
                       className={`group relative p-6 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
                         formData.tracao === tipo.id
                           ? `border-${tipo.color}-500 bg-${tipo.color}-500/20 shadow-lg shadow-${tipo.color}-500/25`

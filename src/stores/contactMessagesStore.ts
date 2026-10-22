@@ -81,7 +81,7 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
     })
   },
 
-  markAsRead: (messageId, adminId) => {
+  markAsRead: (messageId) => {
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId
@@ -257,7 +257,7 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
     return get().messages.filter(m => m.priority === priority)
   },
 
-  markMultipleAsRead: (messageIds, adminId) => {
+  markMultipleAsRead: (messageIds) => {
     set(state => ({
       messages: state.messages.map(message =>
         messageIds.includes(message.id)
@@ -297,7 +297,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
 
   removeResponseTemplate: (name) => {
     set(state => {
-      const { [name]: removed, ...rest } = state.responseTemplates
+      const rest = { ...state.responseTemplates }
+      delete rest[name]
       return { responseTemplates: rest }
     })
   }

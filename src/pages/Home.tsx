@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Filter, TrendingUp, Zap, Wind, Trophy, Settings, CheckCircle, Calendar, Award } from 'lucide-react';
+import { Search, Filter, TrendingUp, Zap, Wind, Trophy, Settings, CheckCircle, Calendar } from 'lucide-react';
 import CarCard from '../components/CarCard';
 import InstagramFeed from '../components/InstagramFeed';
 import { useListingsStore } from '../stores/listingsStore';
@@ -37,7 +37,7 @@ const Home = () => {
   // Função para lidar com Enter na busca
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearch(e as any);
+      handleSearch(e);
     }
   };
 
@@ -325,39 +325,6 @@ const Home = () => {
             )}
             </div>
 
-            {/* Success Stats */}
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <div className="text-center">
               <Link
               to="/vendidos"
@@ -370,40 +337,6 @@ const Home = () => {
           </div>
         </section>
       }
-
-      {/* Stats Section */}
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </div>);
 
 };

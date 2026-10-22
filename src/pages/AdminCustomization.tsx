@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {Palette, Type, Layout, Share2, Search, Settings, Save, RotateCcw, Download, Upload, Eye, Monitor, Smartphone, Tablet, Image, Globe, Instagram, Facebook, MessageCircleDashed as MessageCircle, Mail, Phone, MapPin, Star, TrendingUp, Zap, Shield, Clock, Award} from 'lucide-react'
+import { Palette, Type, Layout, Share2, Search, Settings, Save, RotateCcw, Download, Upload, Eye, Monitor, Smartphone, Tablet, Image, Globe, Instagram, Facebook, MessageCircleDashed as MessageCircle, Mail, Phone, MapPin, Star, TrendingUp, Zap, Shield, Award } from 'lucide-react'
 import { useCustomizationStore } from '../stores/customizationStore'
 import ColorPicker from '../components/ColorPicker'
 import ImageUploader from '../components/ImageUploader'
@@ -9,14 +9,11 @@ import toast from 'react-hot-toast'
 
 const AdminCustomization = () => {
   const {
-    configs,
     loading,
     saving,
-    getConfigsBySection,
     getConfigValue,
     fetchConfigs,
     updateConfig,
-    saveAllConfigs,
     exportConfigs,
     importConfigs
   } = useCustomizationStore()
@@ -29,7 +26,7 @@ const AdminCustomization = () => {
 
   useEffect(() => {
     fetchConfigs()
-  }, [])
+  }, [fetchConfigs])
 
   const handleConfigChange = (key: string, value: string) => {
     setChanges(prev => ({ ...prev, [key]: value }))
@@ -53,7 +50,7 @@ const AdminCustomization = () => {
 
   const resetChanges = () => {
     setChanges({})
-    toast.info('Alterações descartadas')
+    toast('Alterações descartadas', { icon: 'ℹ️' })
   }
 
   const exportConfig = () => {
@@ -133,7 +130,7 @@ const AdminCustomization = () => {
                   return (
                     <button
                       key={size.id}
-                      onClick={() => setPreviewMode(size.id as any)}
+                      onClick={() => setPreviewMode(size.id as typeof previewMode)}
                       className={`p-2 rounded transition-colors ${
                         previewMode === size.id
                           ? 'bg-primary-red text-white'

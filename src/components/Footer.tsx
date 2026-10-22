@@ -1,5 +1,4 @@
 
-import React from 'react';
 import { MessageCircleDashed as MessageCircle, Instagram, Mail, Car } from 'lucide-react';
 import { motion } from 'framer-motion';
 

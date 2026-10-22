@@ -73,7 +73,6 @@ const PowerTorqueBar: React.FC<PowerTorqueBarProps> = ({
   }
 
   const filledBars = calculateFilledBars()
-  const emptyBars = totalBars - filledBars
 
   const getCategoryColor = () => {
     if (unit === 'kgfm') return '#3B7BFF' // Azul para torque

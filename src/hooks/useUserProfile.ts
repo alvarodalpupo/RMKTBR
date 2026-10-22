@@ -50,7 +50,7 @@ export const useUserProfile = () => {
       })
 
       if (profiles && profiles.length > 0) {
-        setProfile(profiles[0])
+        setProfile(profiles[0] as unknown as UserProfile)
       } else {
         // Criar perfil padrão se não existir
         const defaultProfile: UserProfile = {
@@ -73,7 +73,7 @@ export const useUserProfile = () => {
         }
 
         const newProfile = await lumi.entities.user_profiles.create(defaultProfile)
-        setProfile(newProfile)
+        setProfile(newProfile as unknown as UserProfile)
       }
     } catch (error) {
       console.error('Erro ao buscar perfil:', error)
@@ -99,7 +99,7 @@ export const useUserProfile = () => {
         updatedData
       )
       
-      setProfile(updatedProfile)
+      setProfile(updatedProfile as unknown as UserProfile)
       toast.success('Perfil atualizado com sucesso!')
       return true
     } catch (error) {

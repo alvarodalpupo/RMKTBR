@@ -1,7 +1,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import {Mail, Phone, Clock, CheckCircle, MessageCircleDashed as MessageCircle, Archive, AlertTriangle, Flag, Eye, Reply, MoreVertical, Tag, Calendar, User} from 'lucide-react'
+import { Mail, Phone, Archive, Flag, Eye, Reply, MoreVertical, Tag, Calendar, User } from 'lucide-react'
 import { ContactMessage } from '../types/contactMessage'
 
 interface ContactMessageCardProps {
@@ -75,7 +75,7 @@ const ContactMessageCard: React.FC<ContactMessageCardProps> = ({
           year: '2-digit'
         })
       }
-    } catch (error) {
+    } catch {
       return 'Data inválida'
     }
   }, [])

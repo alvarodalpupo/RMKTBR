@@ -60,7 +60,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       const { list } = await lumi.entities.site_customization.list({
         sort: { section: 1, order: 1 }
       })
-      set({ configs: list || [], loading: false })
+      set({ configs: (list || []) as unknown as CustomizationConfig[], loading: false })
     } catch (error) {
       console.error('Erro ao carregar configurações:', error)
       toast.error('Erro ao carregar configurações')
@@ -102,7 +102,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
         })
         
         set({
-          configs: [...configs, newConfig],
+          configs: [...configs, newConfig as unknown as CustomizationConfig],
           saving: false
         })
       }
@@ -125,7 +125,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       })
       
       set({
-        configs: [...get().configs, newConfig]
+        configs: [...get().configs, newConfig as unknown as CustomizationConfig]
       })
       
       toast.success('Configuração criada com sucesso!')

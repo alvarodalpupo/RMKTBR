@@ -37,7 +37,7 @@ export const useUserSessions = () => {
         sort: { created_at: -1 }
       })
 
-      setSessions(userSessions || [])
+      setSessions((userSessions || []) as unknown as UserSession[])
     } catch (error) {
       console.error('Erro ao buscar sessões:', error)
       toast.error('Erro ao carregar sessões')

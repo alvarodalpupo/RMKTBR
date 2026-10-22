@@ -19,14 +19,16 @@ export interface User {
   verified: boolean
 }
 
+export interface UserFilters {
+  search: string
+  role: 'all' | 'user' | 'admin'
+  status: 'all' | 'ativo' | 'banido' | 'suspenso'
+}
+
 interface UsersState {
   users: User[]
   loading: boolean
-  filters: {
-    search: string
-    role: 'all' | 'user' | 'admin'
-    status: 'all' | 'ativo' | 'banido' | 'suspenso'
-  }
+  filters: UserFilters
   setFilters: (filters: Partial<UsersState['filters']>) => void
   getFilteredUsers: () => User[]
   getUserStats: () => {
@@ -183,18 +185,16 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       const user = get().users.find(u => u.id === userId)
       if (user) {
         useNotificationsStore.getState().addNotification({
-          id: Date.now().toString(),
           user_id: userId,
           type: 'account',
           title: 'Conta Banida',
           message: `Sua conta foi banida. Motivo: ${reason}`,
-          read: false,
-          created_at: new Date().toISOString()
+          read: false
         })
       }
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -215,18 +215,16 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       const user = get().users.find(u => u.id === userId)
       if (user) {
         useNotificationsStore.getState().addNotification({
-          id: Date.now().toString(),
           user_id: userId,
           type: 'account',
           title: 'Conta Reativada',
           message: 'Sua conta foi reativada e você pode usar a plataforma novamente.',
-          read: false,
-          created_at: new Date().toISOString()
+          read: false
         })
       }
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -247,18 +245,16 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       const user = get().users.find(u => u.id === userId)
       if (user) {
         useNotificationsStore.getState().addNotification({
-          id: Date.now().toString(),
           user_id: userId,
           type: 'account',
           title: 'Conta Suspensa',
           message: `Sua conta foi suspensa por ${days} dias. Motivo: ${reason}`,
-          read: false,
-          created_at: new Date().toISOString()
+          read: false
         })
       }
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -279,18 +275,16 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       const user = get().users.find(u => u.id === userId)
       if (user) {
         useNotificationsStore.getState().addNotification({
-          id: Date.now().toString(),
           user_id: userId,
           type: 'account',
           title: 'Promovido a Administrador',
           message: 'Parabéns! Você foi promovido a administrador da plataforma.',
-          read: false,
-          created_at: new Date().toISOString()
+          read: false
         })
       }
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -309,7 +303,7 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       }))
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -330,18 +324,16 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       const user = get().users.find(u => u.id === userId)
       if (user) {
         useNotificationsStore.getState().addNotification({
-          id: Date.now().toString(),
           user_id: userId,
           type: 'account',
           title: 'Conta Verificada',
           message: 'Sua conta foi verificada com sucesso!',
-          read: false,
-          created_at: new Date().toISOString()
+          read: false
         })
       }
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -358,7 +350,7 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       }))
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }
@@ -377,7 +369,7 @@ export const useUsersStore = create<UsersState>((set, get) => ({
       }))
 
       return true
-    } catch (error) {
+    } catch {
       set({ loading: false })
       return false
     }

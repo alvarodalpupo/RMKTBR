@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { extrairValorNumerico } from '../utils/formatters'
 
 export interface Listing {
   id: string
@@ -344,7 +345,7 @@ const applyFiltersToListings = (listings: Listing[], filters: ListingFilters): L
       }
     }
     // Se showSoldOnly é false ou undefined, EXCLUIR vendidos automaticamente
-    else if (filters.showSoldOnly !== true) {
+    else {
       if (listing.status === 'vendido') {
         return false
       }
@@ -399,7 +400,7 @@ const applyFiltersToListings = (listings: Listing[], filters: ListingFilters): L
 
     // Filtros por preço customizável
     if (filters.minPrice || filters.maxPrice) {
-      const priceNumber = parseInt(listing.preco.replace(/\D/g, ''))
+      const priceNumber = extrairValorNumerico(listing.preco)
       if (filters.minPrice && priceNumber < filters.minPrice) {
         return false
       }
@@ -410,7 +411,7 @@ const applyFiltersToListings = (listings: Listing[], filters: ListingFilters): L
 
     // Filtro por faixa de preço
     if (filters.price && filters.price !== 'todos') {
-      const priceNumber = parseInt(listing.preco.replace(/\D/g, ''))
+      const priceNumber = extrairValorNumerico(listing.preco)
       switch (filters.price) {
         case 'até R$ 100.000':
           if (priceNumber > 100000) return false

@@ -4,7 +4,7 @@ import { create } from 'zustand'
 export interface Notification {
   id: string
   user_id: string
-  type: 'aprovacao' | 'rejeicao' | 'status_change' | 'destaque' | 'geral'
+  type: 'aprovacao' | 'rejeicao' | 'status_change' | 'destaque' | 'geral' | 'account'
   title: string
   message: string
   listing_id?: string

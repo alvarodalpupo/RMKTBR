@@ -1,5 +1,4 @@
 
-import React from 'react'
 import { motion } from 'framer-motion'
 import {ArrowLeft, Shield, Lock, Eye, Database, UserCheck} from 'lucide-react'
 import { Link } from 'react-router-dom'

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Instagram, ExternalLink, Heart, MessageCircleDashed as MessageCircle } from 'lucide-react';
+import { Instagram, ExternalLink } from 'lucide-react';
 import { InstagramPost as InstagramPostType } from '../types/instagram';
 
 interface InstagramPostProps {
@@ -88,21 +88,7 @@ const InstagramPost: React.FC<InstagramPostProps> = ({ post, index }) => {
           }
 
           {/* Footer */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <Heart className="w-4 h-4" />
-                <span className="text-xs font-montserrat">
-                  {Math.floor(Math.random() * 500) + 50}
-                </span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <MessageCircle className="w-4 h-4" />
-                <span className="text-xs font-montserrat">
-                  {Math.floor(Math.random() * 50) + 5}
-                </span>
-              </div>
-            </div>
+          <div className="flex items-center justify-end">
             <span className="text-xs text-gray-300 font-montserrat">
               {formatDate(post.timestamp)}
             </span>
@@ -115,15 +101,13 @@ const InstagramPost: React.FC<InstagramPostProps> = ({ post, index }) => {
         </div>
 
         {/* Link to Instagram */}
-        
-
-
-
-
-
-
-
-
+        <a
+          href={post.permalink}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Abrir post no Instagram"
+          className="absolute inset-0"
+        />
       </div>
 
       {/* External Link Icon */}

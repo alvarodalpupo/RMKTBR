@@ -1,8 +1,7 @@
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import { MessageCircleDashed as MessageCircle, Instagram, Mail, Phone, Send, MapPin, CheckCircle, Clock, Shield, Zap } from 'lucide-react';
+import { MessageCircleDashed as MessageCircle, Instagram, Mail, Send, MapPin, Clock, Shield, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useContactMessagesStore } from '../stores/contactMessagesStore';
 
@@ -34,7 +33,7 @@ const Contato = () => {
 
       toast.success('Mensagem enviada com sucesso! Nossa equipe retornará em até 24 horas.');
       reset();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao enviar mensagem. Tente novamente.');
     }
   };
@@ -383,46 +382,6 @@ const Contato = () => {
 
               Seguir no Instagram
             </a>
-          </div>
-        </motion.section>
-
-        {/* Success Stats */}
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-          className="mt-16">
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-
-
-
-
-
-
-
-
-            
-            
-
-
-
-
-
-
-
-
-            
-            
-
-
-
-
-
-
-
-
           </div>
         </motion.section>
       </div>
