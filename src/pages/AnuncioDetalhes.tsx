@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, MessageCircleDashed as MessageCircle, ArrowLeft, Share2, Heart, Flame, Zap, CheckCircle, Flag, Star } from 'lucide-react';
+import { MapPin, Calendar, MessageCircleDashed as MessageCircle, ArrowLeft, Share2, Heart, Flame, Zap, CheckCircle, Flag, Star, Cog } from 'lucide-react';
 import { useListingsStore } from '../stores/listingsStore';
 import PowerTorqueBar from '../components/PowerTorqueBar';
 import toast from 'react-hot-toast';
@@ -30,7 +30,7 @@ const AnuncioDetalhes = () => {
       <div className="pt-20 min-h-screen bg-primary-black flex items-center justify-center">
         <div className="text-center">
           <h1 className="font-bebas text-4xl text-white mb-4">ANÚNCIO NÃO ENCONTRADO</h1>
-          <Link to="/anuncios" className="text-primary-red hover:text-turbo-secondary font-montserrat font-600">
+          <Link to="/anuncios" className="text-red-text hover:text-turbo-secondary font-montserrat font-600">
             ← Voltar aos anúncios
           </Link>
         </div>
@@ -53,45 +53,27 @@ const AnuncioDetalhes = () => {
     }
   };
 
-  const getCategoryColor = () => {
-    switch (listing.categoria) {
-      case 'turbo':
-        return 'text-turbo-primary bg-turbo-primary/10 border-turbo-primary/20';
-      case 'aspirado':
-        return 'text-aspirado-primary bg-aspirado-primary/10 border-aspirado-primary/20';
-      case 'original':
-        return 'text-original-primary bg-original-primary/10 border-original-primary/20';
-      case 'pista':
-        return 'text-pista-primary bg-pista-primary/10 border-pista-primary/20';
-      default:
-        return 'text-gray-400';
-    }
-  };
 
   const getTractionInfo = () => {
     switch (listing.tracao) {
       case 'dianteira':
         return {
           label: 'Tração Dianteira',
-          icon: '🚗',
           description: 'Motor transfere força para as rodas dianteiras'
         };
       case 'traseira':
         return {
           label: 'Tração Traseira',
-          icon: '🏎️',
           description: 'Motor transfere força para as rodas traseiras'
         };
       case 'integral':
         return {
           label: 'Tração Integral',
-          icon: '🚙',
           description: 'Motor transfere força para todas as rodas'
         };
       default:
         return {
           label: 'Não informado',
-          icon: '🚗',
           description: 'Tipo de tração não especificado'
         };
     }
@@ -173,10 +155,10 @@ const AnuncioDetalhes = () => {
                 }
 
                 {/* Category Badge */}
-                <div className={`absolute top-4 right-4 flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-montserrat font-600 border ${getCategoryColor()}`}>
+                <span className={`absolute top-4 right-4 rm-badge rm-badge--${listing.categoria}`}>
                   {getCategoryIcon()}
-                  <span className="capitalize">{listing.categoria}</span>
-                </div>
+                  {listing.categoria}
+                </span>
 
                 {/* Image Navigation */}
                 {listing.images.length > 1 &&
@@ -228,7 +210,7 @@ const AnuncioDetalhes = () => {
 
             {/* Main Info */}
             <div className="bg-primary-gray rounded-2xl p-6 border border-gray-800">
-              <h1 className="font-bebas text-3xl md:text-4xl text-white mb-4">
+              <h1 className="font-display text-4xl md:text-5xl leading-none tracking-[0.5px] text-ink mb-4">
                 {listing.titulo}
               </h1>
               
@@ -244,7 +226,7 @@ const AnuncioDetalhes = () => {
               </div>
 
               <div className="mb-6">
-                <span className="font-bebas text-4xl text-primary-red">
+                <span className="font-display text-5xl tabular-nums text-red">
                   {listing.preco}
                 </span>
               </div>
@@ -258,10 +240,9 @@ const AnuncioDetalhes = () => {
                   </div> :
                 <button
                   onClick={handleWhatsAppClick}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-montserrat font-bold py-4 rounded-lg transition-colors flex items-center justify-center space-x-2">
-
+                  className="rm-btn rm-btn--primary w-full">
                   <MessageCircle className="w-5 h-5" />
-                  <span>Chamar no WhatsApp</span>
+                  CHAMAR NO WHATSAPP
                 </button>
                 }
 
@@ -293,7 +274,7 @@ const AnuncioDetalhes = () => {
             <div className="bg-primary-gray rounded-2xl p-6 border border-gray-800">
               <h3 className="font-bebas text-xl text-white mb-4">TRAÇÃO</h3>
               <div className="flex items-center space-x-3 mb-3">
-                <span className="text-2xl">{tractionInfo.icon}</span>
+                <Cog className="w-6 h-6 text-ink-muted flex-shrink-0" />
                 <div>
                   <div className="font-montserrat font-bold text-white">{tractionInfo.label}</div>
                   <div className="text-gray-400 text-sm font-montserrat">{tractionInfo.description}</div>

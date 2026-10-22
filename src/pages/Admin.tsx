@@ -559,13 +559,13 @@ const Admin = () => {
           className="mb-8"
         >
           <div className="flex items-center space-x-3 mb-2">
-            <Shield className="w-8 h-8 text-primary-red" />
+            <Shield className="w-8 h-8 text-red-text" />
             <h1 className="font-bebas text-4xl md:text-5xl text-white">
               PAINEL ADMINISTRATIVO
             </h1>
           </div>
           <p className="text-gray-400 font-montserrat">
-            Bem-vindo, <span className="text-primary-red font-600">{user.nome}</span> - Administrador
+            Bem-vindo, <span className="text-red-text font-600">{user.nome}</span> - Administrador
           </p>
         </motion.div>
 
@@ -616,7 +616,7 @@ const Admin = () => {
           >
             <div className="flex items-center justify-between">
               <h2 className="font-bebas text-3xl text-white">ANÚNCIOS PENDENTES</h2>
-              <div className="bg-primary-red/20 text-primary-red px-4 py-2 rounded-lg font-montserrat font-600">
+              <div className="bg-primary-red/20 text-red-text px-4 py-2 rounded-lg font-montserrat font-600">
                 {pendingListings.length} aguardando revisão
               </div>
             </div>
@@ -643,13 +643,13 @@ const Admin = () => {
                             <div className="flex items-center space-x-4 text-sm text-gray-400 font-montserrat">
                               <span>{listing.ano}</span>
                               <span>{listing.cidade}, {listing.uf}</span>
-                              <span className="capitalize bg-primary-red/20 text-primary-red px-2 py-1 rounded">
+                              <span className="capitalize bg-primary-red/20 text-red-text px-2 py-1 rounded">
                                 {listing.categoria}
                               </span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-bebas text-2xl text-primary-red">{listing.preco}</div>
+                            <div className="font-bebas text-2xl text-red-text">{listing.preco}</div>
                             <div className="text-sm text-gray-400 font-montserrat">
                               {new Date(listing.created_at).toLocaleDateString('pt-BR')}
                             </div>
@@ -808,7 +808,7 @@ const Admin = () => {
                         </div>
                         
                         <div className="text-right">
-                          <div className="font-bebas text-xl text-primary-red">{listing.preco}</div>
+                          <div className="font-bebas text-xl text-red-text">{listing.preco}</div>
                           <div className="flex items-center space-x-3 text-sm text-gray-400">
                             <span className="flex items-center space-x-1">
                               <Eye className="w-4 h-4" />
@@ -1223,7 +1223,7 @@ const Admin = () => {
                 {getCategoryStats().map((category) => (
                   <div key={category.name} className="text-center">
                     <div className="bg-primary-black border border-gray-800 rounded-lg p-4">
-                      <div className="text-2xl font-bebas text-primary-red mb-2">{category.count}</div>
+                      <div className="text-2xl font-bebas text-red-text mb-2">{category.count}</div>
                       <div className="text-sm text-gray-400 font-montserrat capitalize">
                         {category.name}
                       </div>
@@ -1335,7 +1335,7 @@ const Admin = () => {
               {/* Cores e Visual */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Palette className="w-6 h-6 text-primary-red" />
+                  <Palette className="w-6 h-6 text-red-text" />
                   <span>CORES E VISUAL</span>
                 </h3>
                 
@@ -1377,7 +1377,7 @@ const Admin = () => {
               {/* Conteúdo */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <FileText className="w-6 h-6 text-primary-red" />
+                  <FileText className="w-6 h-6 text-red-text" />
                   <span>CONTEÚDO</span>
                 </h3>
                 
@@ -1417,7 +1417,7 @@ const Admin = () => {
               {/* Redes Sociais */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Globe className="w-6 h-6 text-primary-red" />
+                  <Globe className="w-6 h-6 text-red-text" />
                   <span>REDES SOCIAIS</span>
                 </h3>
                 
@@ -1516,7 +1516,7 @@ const Admin = () => {
               {/* Moderação */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Shield className="w-6 h-6 text-primary-red" />
+                  <Shield className="w-6 h-6 text-red-text" />
                   <span>MODERAÇÃO</span>
                 </h3>
                 
@@ -1595,7 +1595,7 @@ const Admin = () => {
               {/* Notificações */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Bell className="w-6 h-6 text-primary-red" />
+                  <Bell className="w-6 h-6 text-red-text" />
                   <span>NOTIFICAÇÕES</span>
                 </h3>
                 
@@ -1653,7 +1653,7 @@ const Admin = () => {
               {/* Segurança */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Lock className="w-6 h-6 text-primary-red" />
+                  <Lock className="w-6 h-6 text-red-text" />
                   <span>SEGURANÇA</span>
                 </h3>
                 
@@ -1723,7 +1723,7 @@ const Admin = () => {
               {/* Contato */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Mail className="w-6 h-6 text-primary-red" />
+                  <Mail className="w-6 h-6 text-red-text" />
                   <span>INFORMAÇÕES DE CONTATO</span>
                 </h3>
                 
@@ -2272,7 +2272,7 @@ const Admin = () => {
                       name="aceita_troca"
                       value="true"
                       defaultChecked={editingListing.aceita_troca}
-                      className="w-4 h-4 text-primary-red bg-primary-black border-gray-800 rounded"
+                      className="w-4 h-4 text-red-text bg-primary-black border-gray-800 rounded"
                     />
                     <label className="text-white font-montserrat font-600">Aceita Troca</label>
                   </div>

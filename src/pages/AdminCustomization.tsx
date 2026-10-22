@@ -461,7 +461,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('header_fixed') === 'true'}
                             onChange={(e) => handleConfigChange('header_fixed', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -471,7 +471,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('header_show_logo') === 'true'}
                             onChange={(e) => handleConfigChange('header_show_logo', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -481,7 +481,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('header_transparent') === 'true'}
                             onChange={(e) => handleConfigChange('header_transparent', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                       </div>
@@ -501,7 +501,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('show_hero_section') === 'true'}
                             onChange={(e) => handleConfigChange('show_hero_section', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -511,7 +511,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('show_featured_ads') === 'true'}
                             onChange={(e) => handleConfigChange('show_featured_ads', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -521,7 +521,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('show_categories') === 'true'}
                             onChange={(e) => handleConfigChange('show_categories', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -531,7 +531,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('show_instagram_feed') === 'true'}
                             onChange={(e) => handleConfigChange('show_instagram_feed', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -541,7 +541,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('show_about_section') === 'true'}
                             onChange={(e) => handleConfigChange('show_about_section', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                       </div>
@@ -620,7 +620,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('instagram_feed') === 'true'}
                             onChange={(e) => handleConfigChange('instagram_feed', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -878,7 +878,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('enable_lazy_loading') === 'true'}
                             onChange={(e) => handleConfigChange('enable_lazy_loading', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -888,7 +888,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('enable_image_compression') === 'true'}
                             onChange={(e) => handleConfigChange('enable_image_compression', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -898,7 +898,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('enable_data_cache') === 'true'}
                             onChange={(e) => handleConfigChange('enable_data_cache', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                       </div>
@@ -918,7 +918,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('enable_entrance_animations') === 'true'}
                             onChange={(e) => handleConfigChange('enable_entrance_animations', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -928,7 +928,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('enable_hover_effects') === 'true'}
                             onChange={(e) => handleConfigChange('enable_hover_effects', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         
@@ -938,7 +938,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('enable_parallax') === 'true'}
                             onChange={(e) => handleConfigChange('enable_parallax', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                       </div>
@@ -958,7 +958,7 @@ const AdminCustomization = () => {
                             type="checkbox"
                             checked={getCurrentValue('maintenance_mode') === 'true'}
                             onChange={(e) => handleConfigChange('maintenance_mode', e.target.checked.toString())}
-                            className="w-5 h-5 text-primary-red"
+                            className="w-5 h-5 text-red-text"
                           />
                         </div>
                         

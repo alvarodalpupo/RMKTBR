@@ -236,7 +236,7 @@ const Painel = () => {
                   MEU PAINEL
                 </h1>
                 <p className="text-gray-400 font-montserrat">
-                  Bem-vindo, <span className="text-primary-red font-600">{user?.nome}</span>
+                  Bem-vindo, <span className="text-red-text font-600">{user?.nome}</span>
                 </p>
               </div>
             </div>
@@ -301,7 +301,7 @@ const Painel = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <Car className="w-8 h-8 text-primary-red" />
+                    <Car className="w-8 h-8 text-red-text" />
                     <span className="text-2xl font-bebas text-white">{stats.total_anuncios}</span>
                   </div>
                   <h3 className="font-montserrat font-600 text-white">Total Anúncios</h3>
@@ -883,7 +883,7 @@ const Painel = () => {
                               )}
                             </div>
                             <p className="text-gray-400 mb-2">{listing.cidade} - {listing.uf}</p>
-                            <span className="font-bebas text-xl text-primary-red">
+                            <span className="font-bebas text-xl text-red-text">
                               {listing.preco}
                             </span>
                             <div className="mt-2">
@@ -923,7 +923,7 @@ const Painel = () => {
                                 onClick={() => handleToggleDestaque(listing.id, listing.destaque)}
                                 className={`px-4 py-2 rounded-lg font-montserrat font-600 transition-colors ${
                                   listing.destaque
-                                    ? 'bg-primary-red/20 text-primary-red hover:bg-primary-red/30'
+                                    ? 'bg-primary-red/20 text-red-text hover:bg-primary-red/30'
                                     : 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
                                 }`}
                               >

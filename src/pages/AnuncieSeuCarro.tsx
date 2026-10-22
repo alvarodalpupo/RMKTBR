@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Upload, X, Car, MapPin, FileText, Phone, Camera, Plus, Zap, Settings, AlertTriangle, RefreshCw, Shield, Lock, UserPlus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Upload, X, Car, MapPin, FileText, Phone, Camera, Plus, Zap, Settings, AlertTriangle, RefreshCw, Shield, Lock, UserPlus, Banknote, Lightbulb } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { useListingsStore } from '../stores/listingsStore';
 import { estadosCidades, buscarCidadesPorEstado, formatarNomeEstado } from '../data/estados-cidades';
@@ -259,7 +259,7 @@ const AnuncieSeuCarro = () => {
       
       // Se o usuário não estiver logado, mostrar mensagem específica
       if (!user) {
-        toast.success('📧 Verifique seu e-mail para acompanhar o status do anúncio', {
+        toast.success('Verifique seu e-mail para acompanhar o status do anúncio', {
           duration: 5000
         });
       }
@@ -312,7 +312,7 @@ const AnuncieSeuCarro = () => {
                   <UserPlus className="w-6 h-6 text-blue-400 mt-1" />
                   <div>
                     <h3 className="text-blue-400 font-montserrat font-600 mb-1">
-                      🚀 Anuncie Gratuitamente - Sem Cadastro Necessário!
+                      Anuncie grátis, sem cadastro
                     </h3>
                     <p className="text-gray-300 font-montserrat text-sm">
                       Você pode criar seu anúncio imediatamente. Após a aprovação, enviaremos uma confirmação por e-mail.
@@ -407,7 +407,7 @@ const AnuncieSeuCarro = () => {
             {/* Informações Básicas */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <Car className="w-6 h-6 mr-3 text-primary-red" />
+                <Car className="w-6 h-6 mr-3 text-red-text" />
                 INFORMAÇÕES DO VEÍCULO
               </h2>
 
@@ -489,7 +489,7 @@ const AnuncieSeuCarro = () => {
                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
                     <div>
                       <h3 className="text-green-400 font-montserrat font-600 mb-1 flex items-center">
-                        🔄 Aumente suas Chances de Venda
+                        Aumente suas chances de venda
                       </h3>
                       <p className="text-gray-300 font-montserrat text-sm">
                         Anúncios que aceitam troca recebem <strong>40% mais contatos</strong>. 
@@ -510,7 +510,7 @@ const AnuncieSeuCarro = () => {
                     }`}
                   >
                     <div className="text-center">
-                      <div className="text-4xl mb-3">✅</div>
+                      <RefreshCw className="w-8 h-8 mx-auto mb-3 text-success" />
                       <div className={`font-montserrat font-600 text-lg mb-2 ${
                         formData.aceita_troca ? 'text-white' : 'text-gray-300'
                       }`}>
@@ -538,7 +538,7 @@ const AnuncieSeuCarro = () => {
                     }`}
                   >
                     <div className="text-center">
-                      <div className="text-4xl mb-3">💰</div>
+                      <Banknote className="w-8 h-8 mx-auto mb-3 text-warning" />
                       <div className={`font-montserrat font-600 text-lg mb-2 ${
                         !formData.aceita_troca ? 'text-white' : 'text-gray-300'
                       }`}>
@@ -574,7 +574,7 @@ const AnuncieSeuCarro = () => {
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
                   <div>
                     <h3 className="text-yellow-400 font-montserrat font-600 mb-1">
-                      📊 Dados de Performance Aumentam Visualizações
+                      Dados de performance aumentam as visualizações
                     </h3>
                     <p className="text-gray-300 font-montserrat text-sm">
                       Anúncios com dados de potência e torque recebem até <strong>3x mais visualizações</strong>. 
@@ -627,7 +627,7 @@ const AnuncieSeuCarro = () => {
 
               <div className="mt-4 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
                 <p className="text-blue-400 font-montserrat text-sm flex items-center">
-                  💡 <span className="ml-2"><strong>Dica:</strong> Dados de dinamômetro são mais precisos. Se não souber os valores exatos, deixe em branco.</span>
+                  <Lightbulb className="w-4 h-4 inline -mt-0.5 text-warning" /> <span className="ml-2"><strong>Dica:</strong> Dados de dinamômetro são mais precisos. Se não souber os valores exatos, deixe em branco.</span>
                 </p>
               </div>
             </div>
@@ -638,7 +638,7 @@ const AnuncieSeuCarro = () => {
               
               <div className="relative z-10">
                 <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                  <Settings className="w-6 h-6 mr-3 text-primary-red" />
+                  <Settings className="w-6 h-6 mr-3 text-red-text" />
                   TIPO DE TRAÇÃO
                   <div className="ml-4 flex items-center space-x-2">
                     <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse" />
@@ -688,7 +688,7 @@ const AnuncieSeuCarro = () => {
                 {!formData.tracao && (
                   <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
                     <p className="text-yellow-400 font-montserrat text-sm flex items-center">
-                      ⚠️ <span className="ml-2">Selecione o tipo de tração para continuar</span>
+                      <AlertTriangle className="w-4 h-4 inline -mt-0.5" /> <span className="ml-2">Selecione o tipo de tração para continuar</span>
                     </p>
                   </div>
                 )}
@@ -698,7 +698,7 @@ const AnuncieSeuCarro = () => {
             {/* Localização e Preço - ATUALIZADO */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <MapPin className="w-6 h-6 mr-3 text-primary-red" />
+                <MapPin className="w-6 h-6 mr-3 text-red-text" />
                 LOCALIZAÇÃO E PREÇO
               </h2>
 
@@ -724,7 +724,7 @@ const AnuncieSeuCarro = () => {
                   </select>
                   {formData.uf && (
                     <p className="text-green-400 text-xs mt-1 font-montserrat">
-                      ✓ {cidadesDisponiveis.length} cidades disponíveis
+                      {cidadesDisponiveis.length} cidades disponíveis
                     </p>
                   )}
                 </div>
@@ -762,7 +762,7 @@ const AnuncieSeuCarro = () => {
                   </p>
                   {formData.preco && !validarPreco(formData.preco) && (
                     <p className="text-red-400 text-xs mt-1 font-montserrat">
-                      ⚠️ Preço deve estar entre R$ 1,00 e R$ 10.000.000,00
+                      Preço deve estar entre R$ 1,00 e R$ 10.000.000,00
                     </p>
                   )}
                 </div>
@@ -772,7 +772,7 @@ const AnuncieSeuCarro = () => {
             {/* Contato - WhatsApp OBRIGATÓRIO com formatação */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <Phone className="w-6 h-6 mr-3 text-primary-red" />
+                <Phone className="w-6 h-6 mr-3 text-red-text" />
                 CONTATO
                 <div className="ml-4 flex items-center space-x-2">
                   <AlertTriangle className="w-4 h-4 text-red-400" />
@@ -787,7 +787,7 @@ const AnuncieSeuCarro = () => {
                   <div className="w-2 h-2 bg-red-400 rounded-full mt-2"></div>
                   <div>
                     <h3 className="text-red-400 font-montserrat font-600 mb-1">
-                      📱 WhatsApp é Obrigatório
+                      WhatsApp é obrigatório
                     </h3>
                     <p className="text-gray-300 font-montserrat text-sm">
                       O WhatsApp é a principal forma de contato entre compradores e vendedores. 
@@ -818,7 +818,7 @@ const AnuncieSeuCarro = () => {
                 </p>
                 {formData.telefone && !validarTelefone(formData.telefone) && (
                   <p className="text-red-400 text-xs mt-1 font-montserrat">
-                    ⚠️ Número inválido. Use formato: (11) 99999-9999
+                    Número inválido. Use formato: (11) 99999-9999
                   </p>
                 )}
               </div>
@@ -827,7 +827,7 @@ const AnuncieSeuCarro = () => {
             {/* Descrição */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <FileText className="w-6 h-6 mr-3 text-primary-red" />
+                <FileText className="w-6 h-6 mr-3 text-red-text" />
                 DESCRIÇÃO
               </h2>
 
@@ -850,7 +850,7 @@ const AnuncieSeuCarro = () => {
             {/* Upload de Imagens */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <Camera className="w-6 h-6 mr-3 text-primary-red" />
+                <Camera className="w-6 h-6 mr-3 text-red-text" />
                 FOTOS DO VEÍCULO
               </h2>
 
@@ -962,7 +962,7 @@ const AnuncieSeuCarro = () => {
               {!user && (
                 <div className="mt-4 text-center">
                   <p className="text-gray-400 font-montserrat text-sm">
-                    💡 <a href="/cadastro" className="text-blue-400 underline">Crie uma conta</a> para gerenciar seus anúncios e receber mais recursos!
+                    <Link to="/cadastro" className="text-red-text underline">Crie uma conta</Link> para gerenciar seus anúncios e receber mais recursos!
                   </p>
                 </div>
               )}

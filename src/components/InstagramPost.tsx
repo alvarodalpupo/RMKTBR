@@ -41,8 +41,8 @@ const InstagramPost: React.FC<InstagramPostProps> = ({ post, index }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ y: 30 }}
+      whileInView={{ y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
       className="group relative aspect-square overflow-hidden rounded-xl bg-primary-gray">

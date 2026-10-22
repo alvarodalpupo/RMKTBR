@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {Menu, X, User, LogOut, Settings, CheckCircle} from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import Logo from './Logo';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -32,14 +33,12 @@ const Header = () => {
 
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-primary-black/95 backdrop-blur-sm border-b border-gray-800">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-bg/95 backdrop-blur-sm border-b border-line">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="font-bebas text-2xl text-white">
-              RACE<span className="text-primary-red">MARKET</span>BR
-            </div>
+          <Link to="/" className="flex items-center" aria-label="RaceMarketBR — início">
+            <Logo height={22} />
           </Link>
 
           {/* Desktop Navigation */}
@@ -50,7 +49,7 @@ const Header = () => {
                 to={item.path}
                 className={`font-montserrat font-500 transition-colors flex items-center space-x-1 ${
                   isActive(item.path)
-                    ? 'text-primary-red'
+                    ? 'text-red-text'
                     : 'text-gray-300 hover:text-white'
                 }`}
               >
@@ -129,9 +128,9 @@ const Header = () => {
                 </Link>
                 <Link
                   to="/cadastro"
-                  className="bg-primary-red hover:bg-turbo-dark text-white px-4 py-2 rounded-lg font-montserrat transition-colors"
+                  className="rm-btn rm-btn--primary rm-btn--sm"
                 >
-                  Cadastrar
+                  CADASTRAR
                 </Link>
               </div>
             )}
@@ -162,7 +161,7 @@ const Header = () => {
                     to={item.path}
                     className={`font-montserrat font-500 transition-colors flex items-center space-x-2 ${
                       isActive(item.path)
-                        ? 'text-primary-red'
+                        ? 'text-red-text'
                         : 'text-gray-300 hover:text-white'
                     }`}
                     onClick={() => setIsMenuOpen(false)}
@@ -219,10 +218,10 @@ const Header = () => {
                     </Link>
                     <Link
                       to="/cadastro"
-                      className="bg-primary-red hover:bg-turbo-dark text-white px-4 py-2 rounded-lg font-montserrat transition-colors text-center"
+                      className="rm-btn rm-btn--primary rm-btn--sm"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      Cadastrar
+                      CADASTRAR
                     </Link>
                   </div>
                 )}

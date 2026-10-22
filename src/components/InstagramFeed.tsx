@@ -24,8 +24,8 @@ const InstagramFeed: React.FC = () => {
     <section className="py-16 bg-primary-black">
       <div className="container mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ y: 20 }}
+          whileInView={{ y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-10"
         >

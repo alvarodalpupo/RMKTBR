@@ -101,7 +101,7 @@ const Contato = () => {
             animate={{ opacity: 1, y: 0 }}>
 
             <h1 className="font-bebas text-5xl md:text-6xl text-white mb-4">
-              ENTRE EM <span className="text-primary-red">CONTATO</span>
+              ENTRE EM <span className="text-red-text">CONTATO</span>
             </h1>
             <p className="font-montserrat text-gray-400 text-lg max-w-2xl mx-auto">
               Tire suas dúvidas, envie sugestões ou solicite informações sobre nossos serviços
@@ -141,7 +141,7 @@ const Contato = () => {
                     transition={{ delay: 0.3 + index * 0.1 }}
                     className="flex items-center space-x-3 p-3 bg-primary-gray/50 rounded-lg border border-gray-800">
 
-                    <IconComponent className="w-5 h-5 text-primary-red" />
+                    <IconComponent className="w-5 h-5 text-red-text" />
                     <div>
                       <h4 className="font-montserrat font-600 text-white text-sm">
                         {item.title}
@@ -359,7 +359,7 @@ const Contato = () => {
 
           <div className="text-center mb-12">
             <h2 className="font-bebas text-4xl text-white mb-4">
-              SIGA NO <span className="text-primary-red">INSTAGRAM</span>
+              SIGA NO <span className="text-red-text">INSTAGRAM</span>
             </h2>
             <p className="text-gray-400 font-montserrat">
               Acompanhe os lançamentos e novidades do mundo automotivo

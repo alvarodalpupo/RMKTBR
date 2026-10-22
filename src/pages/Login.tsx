@@ -87,7 +87,7 @@ const Login = ({ mode = 'login' }: LoginProps) => {
                 <Link
                   to={isSignup ? '/login' : '/cadastro'}
                   state={location.state}
-                  className="text-primary-red hover:text-turbo-secondary font-600 transition-colors"
+                  className="text-red-text hover:text-turbo-secondary font-600 transition-colors"
                 >
                   {isSignup ? 'Entrar' : 'Cadastre-se'}
                 </Link>

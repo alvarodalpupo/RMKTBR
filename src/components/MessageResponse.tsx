@@ -108,7 +108,7 @@ const MessageResponse: React.FC<MessageResponseProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-800">
               <div className="flex items-center space-x-3">
-                <MessageCircle className="w-6 h-6 text-primary-red" />
+                <MessageCircle className="w-6 h-6 text-red-text" />
                 <h3 className="font-bebas text-xl text-white">RESPONDER MENSAGEM</h3>
               </div>
               <button
@@ -176,7 +176,7 @@ const MessageResponse: React.FC<MessageResponseProps> = ({
                     <h4 className="font-montserrat font-bold text-white mb-3">Mensagem Original</h4>
                     <div className="bg-primary-black border border-gray-800 rounded-lg p-4">
                       <div className="mb-2">
-                        <span className="text-primary-red font-montserrat font-600 text-sm">
+                        <span className="text-red-text font-montserrat font-600 text-sm">
                           {getSubjectLabel(message.subject)}
                         </span>
                       </div>

@@ -29,7 +29,7 @@ const NotFound = () => (
   <div className="pt-20 min-h-screen flex items-center justify-center text-center px-4">
     <div>
       <h1 className="font-bebas text-5xl text-white mb-4">PÁGINA NÃO ENCONTRADA</h1>
-      <Link to="/" className="text-primary-red hover:text-turbo-secondary font-montserrat font-600">
+      <Link to="/" className="text-red-text hover:text-turbo-secondary font-montserrat font-600">
         ← Voltar para o início
       </Link>
     </div>

@@ -14,7 +14,7 @@ const TermosUso = () => {
         >
           <Link 
             to="/cadastro" 
-            className="inline-flex items-center space-x-2 text-primary-red hover:text-turbo-secondary mb-8 transition-colors"
+            className="inline-flex items-center space-x-2 text-red-text hover:text-turbo-secondary mb-8 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-montserrat">Voltar ao cadastro</span>
@@ -23,7 +23,7 @@ const TermosUso = () => {
           <div className="bg-primary-gray border border-gray-800 rounded-2xl p-8">
             <div className="text-center mb-12">
               <div className="flex justify-center mb-4">
-                <Scale className="w-16 h-16 text-primary-red" />
+                <Scale className="w-16 h-16 text-red-text" />
               </div>
               <h1 className="font-bebas text-5xl text-white mb-4">
                 TERMOS DE USO
@@ -244,7 +244,7 @@ const TermosUso = () => {
 
             <div className="mt-12 pt-8 border-t border-gray-800 text-center">
               <div className="flex justify-center mb-4">
-                <Shield className="w-8 h-8 text-primary-red" />
+                <Shield className="w-8 h-8 text-red-text" />
               </div>
               <p className="text-gray-400 font-montserrat">
                 RaceMarketBR - Conectando apaixonados por automóveis

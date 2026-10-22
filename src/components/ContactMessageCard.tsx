@@ -126,7 +126,7 @@ const ContactMessageCard: React.FC<ContactMessageCardProps> = ({
               type="checkbox"
               checked={isSelected}
               onChange={handleSelect}
-              className="w-4 h-4 text-primary-red rounded"
+              className="w-4 h-4 text-red-text rounded"
             />
           )}
           
