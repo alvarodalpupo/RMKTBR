@@ -1,7 +1,9 @@
 
 import { create } from 'zustand'
 import { ContactMessage, ContactMessageFilters, ContactMessageStats } from '../types/contactMessage'
-import { useNotificationsStore } from './notificationsStore'
+import toast from 'react-hot-toast'
+import { supabase, mensagemDeErro, enviarSemEsperar } from '../lib/supabase'
+import { useAuthStore } from './authStore'
 
 interface ContactMessagesState {
   messages: ContactMessage[]
@@ -9,7 +11,9 @@ interface ContactMessagesState {
   loading: boolean
   
   // Actions
-  addMessage: (message: Omit<ContactMessage, 'id' | 'created_at' | 'status' | 'priority'>) => void
+  fetchMessages: () => Promise<void>
+  /** Envia a mensagem do formulário de contato. Retorna false se não gravou. */
+  addMessage: (message: Omit<ContactMessage, 'id' | 'created_at' | 'status' | 'priority'>) => Promise<boolean>
   markAsRead: (messageId: string, adminId: string) => void
   markAsResponded: (messageId: string, response: string, adminId: string) => void
   archiveMessage: (messageId: string) => void
@@ -40,6 +44,20 @@ interface ContactMessagesState {
   removeResponseTemplate: (name: string) => void
 }
 
+/** Grava no banco a mesma mudança feita na tela (só admin consegue). */
+const sincronizar = (ids: string[], patch: Partial<ContactMessage>) => {
+  if (!supabase || ids.length === 0) return
+  const { id: _ignorar, ...campos } = patch
+  void _ignorar
+  void supabase
+    .from('contact_messages')
+    .update(campos)
+    .in('id', ids)
+    .then(({ error }) => {
+      if (error) toast.error(mensagemDeErro(error, 'Não foi possível salvar a alteração da mensagem.'))
+    })
+}
+
 export const useContactMessagesStore = create<ContactMessagesState>((set, get) => ({
   messages: [],
   loading: false,
@@ -57,31 +75,48 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
     'suporte-compra': 'Olá {name}, recebemos sua consulta sobre compra. Um consultor entrará em contato em breve.'
   },
 
-  addMessage: (messageData) => {
+  fetchMessages: async () => {
+    if (!supabase || useAuthStore.getState().user?.role !== 'admin') return
+    set({ loading: true })
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(500)
+    set({ loading: false })
+    if (error) return void toast.error(mensagemDeErro(error, 'Não foi possível carregar as mensagens.'))
+    set({ messages: (data ?? []).map((m) => ({ ...m, phone: m.phone ?? undefined, tags: m.tags ?? [] })) as ContactMessage[] })
+  },
+
+  addMessage: async (messageData) => {
+    if (supabase) {
+      const { error } = await supabase.from('contact_messages').insert({
+        name: messageData.name,
+        email: messageData.email,
+        phone: messageData.phone || null,
+        subject: messageData.subject,
+        message: messageData.message,
+      })
+      if (error) {
+        toast.error(mensagemDeErro(error, 'Não foi possível enviar a mensagem.'))
+        return false
+      }
+      return true
+    }
     const newMessage: ContactMessage = {
       ...messageData,
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
       status: 'nova',
-      priority: messageData.subject === 'problema' ? 'alta' : 'media'
+      priority: ['venda', 'parceria'].includes(messageData.subject) ? 'alta' : 'media'
     }
-    
-    set(state => ({
-      messages: [newMessage, ...state.messages]
-    }))
-    
-    // Adicionar notificação para admins
-    const { addNotification } = useNotificationsStore.getState()
-    addNotification({
-      user_id: 'admin',
-      type: 'geral',
-      title: 'Nova mensagem de contato',
-      message: `${newMessage.name} enviou uma mensagem sobre: ${newMessage.subject}`,
-      read: false
-    })
+    set(state => ({ messages: [newMessage, ...state.messages] }))
+    return true
   },
 
   markAsRead: (messageId) => {
+    sincronizar([messageId], { status: 'lida', read_at: new Date().toISOString() })
+
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId
@@ -96,6 +131,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   markAsResponded: (messageId, response, adminId) => {
+    sincronizar([messageId], { status: 'respondida', response, responded_at: new Date().toISOString(), responded_by: supabase ? useAuthStore.getState().user?.id : adminId })
+
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId
@@ -112,6 +149,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   archiveMessage: (messageId) => {
+    sincronizar([messageId], { status: 'arquivada' })
+
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId
@@ -122,6 +161,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   updatePriority: (messageId, priority) => {
+    sincronizar([messageId], { priority })
+
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId ? { ...message, priority } : message
@@ -130,6 +171,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   updateStatus: (messageId, status) => {
+    sincronizar([messageId], { status })
+
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId ? { ...message, status } : message
@@ -138,6 +181,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   addAdminNotes: (messageId, notes) => {
+    sincronizar([messageId], { admin_notes: notes })
+
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId ? { ...message, admin_notes: notes } : message
@@ -146,6 +191,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   addTags: (messageId, tags) => {
+    sincronizar([messageId], { tags })
+
     set(state => ({
       messages: state.messages.map(message =>
         message.id === messageId ? { ...message, tags } : message
@@ -154,6 +201,7 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   deleteMessage: (messageId) => {
+    if (supabase) enviarSemEsperar(supabase.from('contact_messages').delete().eq('id', messageId))
     set(state => ({
       messages: state.messages.filter(message => message.id !== messageId)
     }))
@@ -258,6 +306,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   markMultipleAsRead: (messageIds) => {
+    sincronizar(messageIds, { status: 'lida', read_at: new Date().toISOString() })
+
     set(state => ({
       messages: state.messages.map(message =>
         messageIds.includes(message.id)
@@ -272,6 +322,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   archiveMultiple: (messageIds) => {
+    sincronizar(messageIds, { status: 'arquivada' })
+
     set(state => ({
       messages: state.messages.map(message =>
         messageIds.includes(message.id)
@@ -282,6 +334,8 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
   },
 
   updateMultiplePriority: (messageIds, priority) => {
+    sincronizar(messageIds, { priority })
+
     set(state => ({
       messages: state.messages.map(message =>
         messageIds.includes(message.id) ? { ...message, priority } : message
@@ -303,3 +357,16 @@ export const useContactMessagesStore = create<ContactMessagesState>((set, get) =
     })
   }
 }))
+
+// Admin entrou: carrega as mensagens do banco
+// (esta parte do site carrega depois do login, então confere já na abertura)
+if (supabase) {
+  let eraAdmin = false
+  const conferir = (admin: boolean) => {
+    if (admin && !eraAdmin) void useContactMessagesStore.getState().fetchMessages()
+    if (!admin && eraAdmin) useContactMessagesStore.setState({ messages: [] })
+    eraAdmin = admin
+  }
+  conferir(useAuthStore.getState().user?.role === 'admin')
+  useAuthStore.subscribe((state) => conferir(state.user?.role === 'admin'))
+}

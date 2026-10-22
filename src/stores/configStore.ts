@@ -1,5 +1,7 @@
 
 import { create } from 'zustand'
+import toast from 'react-hot-toast'
+import { supabase, mensagemDeErro } from '../lib/supabase'
 
 export interface SystemConfig {
   // Configurações de Moderação
@@ -45,6 +47,7 @@ export interface SystemConfig {
 interface ConfigState {
   config: SystemConfig
   loading: boolean
+  fetchConfig: () => Promise<void>
   updateConfig: (updates: Partial<SystemConfig>) => Promise<boolean>
   resetToDefaults: () => void
   exportConfig: () => string
@@ -96,21 +99,29 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
   config: defaultConfig,
   loading: false,
 
-  updateConfig: async (updates: Partial<SystemConfig>) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        config: { ...state.config, ...updates },
-        loading: false
-      }))
+  fetchConfig: async () => {
+    if (!supabase) return
+    const { data } = await supabase.from('site_settings').select('data').eq('id', 1).maybeSingle()
+    if (data?.data) set({ config: { ...defaultConfig, ...(data.data as Partial<SystemConfig>) } })
+  },
 
-      return true
-    } catch {
-      set({ loading: false })
-      return false
+  updateConfig: async (updates: Partial<SystemConfig>) => {
+    const antes = get().config
+    const config = { ...antes, ...updates }
+    set({ config, loading: true })
+    if (supabase) {
+      const { error } = await supabase
+        .from('site_settings')
+        .update({ data: config, updated_at: new Date().toISOString() })
+        .eq('id', 1)
+      if (error) {
+        set({ config: antes, loading: false })
+        toast.error(mensagemDeErro(error, 'Não foi possível salvar as configurações.'))
+        return false
+      }
     }
+    set({ loading: false })
+    return true
   },
 
   resetToDefaults: () => {
@@ -132,3 +143,5 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     }
   }
 }))
+
+if (supabase) void useConfigStore.getState().fetchConfig()

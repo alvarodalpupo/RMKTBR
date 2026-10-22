@@ -19,19 +19,16 @@ const Contato = () => {
 
   const onSubmit = async (data: ContactForm) => {
     try {
-      // Adicionar mensagem ao store
-      addMessage({
+      const ok = await addMessage({
         name: data.name,
         email: data.email,
         phone: data.phone,
         subject: data.subject,
         message: data.message
       });
+      if (!ok) return;
 
-      // Simular envio de email (aqui seria integração real)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success('Mensagem enviada com sucesso! Nossa equipe retornará em até 24 horas.');
+      toast.success('Mensagem enviada! Nossa equipe responde em até 24 horas.');
       reset();
     } catch {
       toast.error('Erro ao enviar mensagem. Tente novamente.');

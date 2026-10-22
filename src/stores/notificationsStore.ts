@@ -1,5 +1,6 @@
-
 import { create } from 'zustand'
+import { supabase, enviarSemEsperar } from '../lib/supabase'
+import { useAuthStore } from './authStore'
 
 export interface Notification {
   id: string
@@ -15,8 +16,8 @@ export interface Notification {
 interface NotificationsState {
   notifications: Notification[]
   unreadCount: number
-  
-  // Actions
+  fetchNotifications: () => Promise<void>
+  /** Cria uma notificação para um usuário (no banco, só o admin pode). */
   addNotification: (notification: Omit<Notification, 'id' | 'created_at'>) => void
   markAsRead: (notificationId: string) => void
   markAllAsRead: (userId: string) => void
@@ -25,55 +26,71 @@ interface NotificationsState {
   deleteNotification: (notificationId: string) => void
 }
 
-export const useNotificationsStore = create<NotificationsState>((set, get) => ({
-  notifications: [],
-  unreadCount: 0,
+const contarNaoLidas = (list: Notification[]) => list.filter((n) => !n.read).length
 
-  addNotification: (notification) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Date.now().toString(),
-      created_at: new Date().toISOString()
-    }
-    
-    set(state => ({
-      notifications: [newNotification, ...state.notifications]
-    }))
-  },
+/**
+ * Notificações do usuário logado. As de anúncio (aprovado, rejeitado,
+ * vendido, destaque) são criadas pelo próprio banco quando o admin age.
+ */
+export const useNotificationsStore = create<NotificationsState>((set, get) => {
+  const aplicar = (notifications: Notification[]) =>
+    set({ notifications, unreadCount: contarNaoLidas(notifications) })
 
-  markAsRead: (notificationId) => {
-    set(state => ({
-      notifications: state.notifications.map(notification =>
-        notification.id === notificationId
-          ? { ...notification, read: true }
-          : notification
-      )
-    }))
-  },
+  return {
+    notifications: [],
+    unreadCount: 0,
 
-  markAllAsRead: (userId) => {
-    set(state => ({
-      notifications: state.notifications.map(notification =>
-        notification.user_id === userId
-          ? { ...notification, read: true }
-          : notification
-      )
-    }))
-  },
+    fetchNotifications: async () => {
+      const userId = useAuthStore.getState().user?.id
+      if (!supabase || !userId) return aplicar([])
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id, user_id, type, title, message, listing_id, read, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100)
+      if (!error && data) aplicar(data as Notification[])
+    },
 
-  getNotificationsForUser: (userId) => {
-    return get().notifications.filter(notification => notification.user_id === userId)
-  },
+    addNotification: (notification) => {
+      const nova: Notification = { ...notification, id: crypto.randomUUID(), created_at: new Date().toISOString() }
+      const meu = notification.user_id === useAuthStore.getState().user?.id
+      if (meu) aplicar([nova, ...get().notifications])
+      if (supabase) {
+        const { id, ...semId } = nova
+        enviarSemEsperar(supabase.from('notifications').insert({ ...semId, id }))
+      }
+    },
 
-  getUnreadCountForUser: (userId) => {
-    return get().notifications.filter(notification => 
-      notification.user_id === userId && !notification.read
-    ).length
-  },
+    markAsRead: (notificationId) => {
+      aplicar(get().notifications.map((n) => (n.id === notificationId ? { ...n, read: true } : n)))
+      if (supabase) enviarSemEsperar(supabase.from('notifications').update({ read: true }).eq('id', notificationId))
+    },
 
-  deleteNotification: (notificationId) => {
-    set(state => ({
-      notifications: state.notifications.filter(notification => notification.id !== notificationId)
-    }))
+    markAllAsRead: (userId) => {
+      aplicar(get().notifications.map((n) => (n.user_id === userId ? { ...n, read: true } : n)))
+      if (supabase) enviarSemEsperar(supabase.from('notifications').update({ read: true }).eq('user_id', userId).eq('read', false))
+    },
+
+    getNotificationsForUser: (userId) => get().notifications.filter((n) => n.user_id === userId),
+
+    getUnreadCountForUser: (userId) => get().notifications.filter((n) => n.user_id === userId && !n.read).length,
+
+    deleteNotification: (notificationId) => {
+      aplicar(get().notifications.filter((n) => n.id !== notificationId))
+      if (supabase) enviarSemEsperar(supabase.from('notifications').delete().eq('id', notificationId))
+    },
   }
-}))
+})
+
+if (supabase) {
+  let ultimo: string | null | undefined
+  const conferir = (atual: string | null) => {
+    if (atual !== ultimo) {
+      ultimo = atual
+      void useNotificationsStore.getState().fetchNotifications()
+    }
+  }
+  conferir(useAuthStore.getState().user?.id ?? null)
+  useAuthStore.subscribe((state) => conferir(state.user?.id ?? null))
+}

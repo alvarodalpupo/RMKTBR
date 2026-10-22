@@ -1,11 +1,10 @@
-
 import { useState, useEffect, useCallback } from 'react'
-import { lumi } from '../lib/lumi'
-import { useAuth } from './useAuth'
 import toast from 'react-hot-toast'
+import { supabase, mensagemDeErro } from '../lib/supabase'
+import { enviarFotos, apagarFotos } from '../lib/fotos'
+import { useAuthStore } from '../stores/authStore'
 
 interface UserProfile {
-  _id?: string
   user_id: string
   avatar?: string
   biografia?: string
@@ -27,143 +26,137 @@ interface UserProfile {
   email_verified?: boolean
   two_factor_enabled?: boolean
   created_at?: string
-  updated_at?: string
 }
 
+const preferenciasPadrao = {
+  preferencias_notificacao: {
+    email_anuncios: true,
+    email_promocoes: false,
+    push_notifications: true,
+    sms_notifications: false,
+  },
+  configuracoes_privacidade: {
+    perfil_publico: true,
+    mostrar_telefone: false,
+    mostrar_email: false,
+  },
+  two_factor_enabled: false,
+}
+
+type Preferencias = typeof preferenciasPadrao
+
+/** Perfil do usuário logado, guardado na tabela `profiles`. */
 export const useUserProfile = () => {
-  const { user, isAuthenticated } = useAuth()
+  const user = useAuthStore((s) => s.user)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [updating, setUpdating] = useState(false)
 
-  // Buscar perfil do usuário
   const fetchProfile = useCallback(async () => {
-    if (!isAuthenticated || !user) {
-      setProfile(null)
+    if (!user) return setProfile(null)
+
+    if (!supabase) {
+      // Modo demonstração: perfil só na memória
+      setProfile((p) => p ?? { user_id: user.id, created_at: new Date().toISOString(), ...preferenciasPadrao })
       return
     }
 
     setLoading(true)
-    try {
-      const { list: profiles } = await lumi.entities.user_profiles.list({
-        filter: { user_id: user.id }
-      })
-
-      if (profiles && profiles.length > 0) {
-        setProfile(profiles[0] as unknown as UserProfile)
-      } else {
-        // Criar perfil padrão se não existir
-        const defaultProfile: UserProfile = {
-          user_id: user.id,
-          preferencias_notificacao: {
-            email_anuncios: true,
-            email_promocoes: false,
-            push_notifications: true,
-            sms_notifications: false
-          },
-          configuracoes_privacidade: {
-            perfil_publico: true,
-            mostrar_telefone: false,
-            mostrar_email: false
-          },
-          email_verified: false,
-          two_factor_enabled: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-
-        const newProfile = await lumi.entities.user_profiles.create(defaultProfile)
-        setProfile(newProfile as unknown as UserProfile)
-      }
-    } catch (error) {
-      console.error('Erro ao buscar perfil:', error)
-      toast.error('Erro ao carregar perfil do usuário')
-    } finally {
-      setLoading(false)
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, avatar_url, biografia, telefone, cidade, uf, preferencias, last_login, verified, created_at')
+      .eq('id', user.id)
+      .maybeSingle()
+    setLoading(false)
+    if (error || !data) {
+      if (error) toast.error(mensagemDeErro(error, 'Não foi possível carregar seu perfil.'))
+      return
     }
-  }, [isAuthenticated, user])
+    const prefs = { ...preferenciasPadrao, ...((data.preferencias as Partial<Preferencias>) ?? {}) }
+    setProfile({
+      user_id: data.id,
+      avatar: data.avatar_url ?? undefined,
+      biografia: data.biografia ?? undefined,
+      telefone: data.telefone ?? undefined,
+      cidade: data.cidade ?? undefined,
+      uf: data.uf ?? undefined,
+      last_login: data.last_login ?? undefined,
+      email_verified: data.verified,
+      created_at: data.created_at,
+      ...prefs,
+    })
+  }, [user])
 
-  // Atualizar perfil
   const updateProfile = async (updates: Partial<UserProfile>) => {
-    if (!profile) return false
-
+    if (!profile || !user) return false
     setUpdating(true)
-    try {
-      const updatedData = {
-        ...updates,
-        updated_at: new Date().toISOString()
+    const novo = { ...profile, ...updates }
+
+    if (supabase) {
+      const linha: Record<string, unknown> = {}
+      if ('avatar' in updates) linha.avatar_url = updates.avatar || null
+      for (const k of ['biografia', 'telefone', 'cidade', 'uf'] as const) {
+        if (k in updates) linha[k] = updates[k] || null
       }
-
-      const updatedProfile = await lumi.entities.user_profiles.update(
-        profile._id!,
-        updatedData
-      )
-      
-      setProfile(updatedProfile as unknown as UserProfile)
-      toast.success('Perfil atualizado com sucesso!')
-      return true
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error)
-      toast.error('Erro ao atualizar perfil')
-      return false
-    } finally {
-      setUpdating(false)
-    }
-  }
-
-  // Upload de avatar
-  const uploadAvatar = async (file: File) => {
-    if (!profile) return false
-
-    setUpdating(true)
-    try {
-      const uploadResult = await lumi.tools.file.upload([file])
-      
-      if (uploadResult[0]?.fileUrl) {
-        await updateProfile({ avatar: uploadResult[0].fileUrl })
-        return true
-      } else {
-        toast.error('Erro no upload da imagem')
+      if ('preferencias_notificacao' in updates || 'configuracoes_privacidade' in updates || 'two_factor_enabled' in updates) {
+        linha.preferencias = {
+          preferencias_notificacao: novo.preferencias_notificacao,
+          configuracoes_privacidade: novo.configuracoes_privacidade,
+          two_factor_enabled: novo.two_factor_enabled,
+        }
+      }
+      const { error } = await supabase.from('profiles').update(linha).eq('id', user.id)
+      if (error) {
+        setUpdating(false)
+        toast.error(mensagemDeErro(error, 'Não foi possível salvar o perfil.'))
         return false
       }
+    }
+
+    setProfile(novo)
+    setUpdating(false)
+    toast.success('Perfil atualizado.')
+    return true
+  }
+
+  const uploadAvatar = async (file: File) => {
+    if (!profile || !user) return false
+    if (!file.type.startsWith('image/')) {
+      toast.error('Escolha um arquivo de imagem.')
+      return false
+    }
+    setUpdating(true)
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader()
+        r.onload = () => resolve(r.result as string)
+        r.onerror = () => reject(r.error)
+        r.readAsDataURL(file)
+      })
+      const [url] = await enviarFotos([dataUrl], user.id)
+      const antigo = profile.avatar
+      const ok = await updateProfile({ avatar: url })
+      if (ok && antigo) void apagarFotos([antigo])
+      return ok
     } catch (error) {
-      console.error('Erro no upload do avatar:', error)
-      toast.error('Erro no upload da imagem')
+      toast.error(mensagemDeErro(error, 'Não foi possível enviar a foto.'))
       return false
     } finally {
       setUpdating(false)
     }
   }
 
-  // Remover avatar
   const removeAvatar = async () => {
     if (!profile?.avatar) return false
-
-    try {
-      // Deletar arquivo antigo
-      await lumi.tools.file.delete([profile.avatar])
-      
-      // Atualizar perfil
-      await updateProfile({ avatar: '' })
-      return true
-    } catch (error) {
-      console.error('Erro ao remover avatar:', error)
-      toast.error('Erro ao remover avatar')
-      return false
-    }
+    const antigo = profile.avatar
+    const ok = await updateProfile({ avatar: '' })
+    if (ok) void apagarFotos([antigo])
+    return ok
   }
 
   useEffect(() => {
-    fetchProfile()
+    void fetchProfile()
   }, [fetchProfile])
 
-  return {
-    profile,
-    loading,
-    updating,
-    updateProfile,
-    uploadAvatar,
-    removeAvatar,
-    refreshProfile: fetchProfile
-  }
+  return { profile, loading, updating, updateProfile, uploadAvatar, removeAvatar, refreshProfile: fetchProfile }
 }

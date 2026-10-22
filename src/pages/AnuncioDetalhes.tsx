@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 const AnuncioDetalhes = () => {
   const { id } = useParams<{id: string;}>();
-  const { listings, incrementViews, incrementWhatsAppClicks } = useListingsStore();
+  const { listings, isLoading, incrementViews, incrementWhatsAppClicks } = useListingsStore();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
   const viewsIncrementedRef = useRef(false);
@@ -24,6 +24,14 @@ const AnuncioDetalhes = () => {
       viewsIncrementedRef.current = true;
     }
   }, [listingId, incrementViews]);
+
+  if (!listing && isLoading) {
+    return (
+      <div className="pt-20 min-h-screen bg-bg flex items-center justify-center" role="status" aria-label="Carregando anúncio">
+        <div className="w-10 h-10 border-4 border-red border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!listing) {
     return (

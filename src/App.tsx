@@ -13,6 +13,7 @@ const AnuncioDetalhes = lazy(() => import('./pages/AnuncioDetalhes'))
 const AnuncieSeuCarro = lazy(() => import('./pages/AnuncieSeuCarro'))
 const Contato = lazy(() => import('./pages/Contato'))
 const Login = lazy(() => import('./pages/Login'))
+const NovaSenha = lazy(() => import('./pages/NovaSenha'))
 const Painel = lazy(() => import('./pages/Painel'))
 const Admin = lazy(() => import('./pages/Admin'))
 const Vendidos = lazy(() => import('./pages/Vendidos'))
@@ -47,7 +48,7 @@ const ScrollToTop = () => {
 
 function App() {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
       <ScrollToTop />
       <div className="min-h-screen bg-primary-black text-white">
         <Header />
@@ -62,6 +63,7 @@ function App() {
               <Route path="/contato" element={<Contato />} />
               <Route path="/login" element={<Login />} />
               <Route path="/cadastro" element={<Login mode="cadastro" />} />
+              <Route path="/nova-senha" element={<NovaSenha />} />
               <Route path="/termos" element={<TermosUso />} />
               <Route path="/privacidade" element={<PoliticaPrivacidade />} />
               <Route

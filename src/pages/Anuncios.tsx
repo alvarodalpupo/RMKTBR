@@ -16,7 +16,9 @@ const Anuncios = () => {
     searchByModel,
     clearModelSearch,
     showNoResultsMessage,
-    searchedModel
+    searchedModel,
+    loadError,
+    fetchListings
   } = useListingsStore()
   
   const [showFilters, setShowFilters] = useState(false)
@@ -347,6 +349,13 @@ const Anuncios = () => {
                   </button>
                 </div>
               </motion.div>
+            </div>
+          )}
+
+          {loadError && (
+            <div role="alert" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning/40 bg-warning/10 p-4 text-ink">
+              <span>{loadError}</span>
+              <button onClick={() => fetchListings()} className="rm-btn rm-btn--outline rm-btn--sm">TENTAR DE NOVO</button>
             </div>
           )}
 

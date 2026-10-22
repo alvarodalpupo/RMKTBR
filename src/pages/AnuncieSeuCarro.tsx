@@ -231,38 +231,32 @@ const AnuncieSeuCarro = () => {
       }
     }
 
-    // Para demonstração, vamos usar URLs de exemplo do Pexels se não houver imagens
-    const finalImages = formData.images.length > 0 ?
-      formData.images :
-      ['https://images.pexels.com/photos/3729464/pexels-photo-3729464.jpeg'];
-
     const listingData = {
-      ...formData,
-      user_id: user?.id || 'guest', // Para usuários não logados, usar 'guest'
+      titulo: formData.titulo.trim(),
+      categoria: formData.categoria,
+      ano: Number(formData.ano),
+      preco: formData.preco,
+      cidade: formData.cidade,
+      uf: formData.uf,
+      descricao: formData.descricao.trim() || undefined,
+      telefone: formData.telefone.trim(),
       destaque: false,
-      images: finalImages,
+      aceita_troca: formData.aceita_troca,
+      images: formData.images,
       power_whp: formData.power_whp ? parseFloat(formData.power_whp) : undefined,
       torque_kgfm: formData.torque_kgfm ? parseFloat(formData.torque_kgfm) : undefined,
       tracao: formData.tracao as 'dianteira' | 'traseira' | 'integral',
-      telefone: formData.telefone.trim(),
-      preco: formData.preco, // Mantém formatado para exibição
-      // Campos específicos para visitantes não logados
+      // Só para quem anuncia sem conta (fica visível apenas ao admin)
       nome_anunciante: user ? undefined : formData.nome_anunciante.trim(),
       email: user ? undefined : formData.email.trim(),
-      status: 'pendente' // Todos os anúncios começam como pendentes
     };
 
     const success = await createListing(listingData);
 
     if (success) {
-      toast.success('Anúncio enviado para revisão! Você será notificado por e-mail quando for aprovado.');
+      toast.success(user ? 'Anúncio enviado para revisão. Você recebe uma notificação no Painel quando for aprovado.' : 'Anúncio enviado para revisão. Nossa equipe confere e publica em breve.');
       
       // Se o usuário não estiver logado, mostrar mensagem específica
-      if (!user) {
-        toast.success('Verifique seu e-mail para acompanhar o status do anúncio', {
-          duration: 5000
-        });
-      }
 
       // Limpar formulário após sucesso
       setFormData({
@@ -290,8 +284,6 @@ const AnuncieSeuCarro = () => {
         // Para visitantes, redirecionar para a página inicial
         navigate('/');
       }
-    } else {
-      toast.error('Erro ao criar anúncio. Tente novamente.');
     }
   };
 

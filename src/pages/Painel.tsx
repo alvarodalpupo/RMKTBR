@@ -146,9 +146,9 @@ const Painel = () => {
     }
   }
 
-  // Manipular destaque de anúncio
-  const handleToggleDestaque = async (id: string, currentDestaque: boolean) => {
-    await updateListing(id, { destaque: !currentDestaque })
+  // Dono avisa que vendeu: sai da vitrine e vai para "Vendidos"
+  const handleMarcarVendido = async (id: string) => {
+    if (await updateListing(id, { status: 'vendido' })) toast.success('Parabéns pela venda! O anúncio foi para Vendidos.')
   }
 
   // Funções utilitárias
@@ -920,14 +920,10 @@ const Painel = () => {
                             </Link>
                             {listing.status === 'publicado' && (
                               <button
-                                onClick={() => handleToggleDestaque(listing.id, listing.destaque)}
-                                className={`px-4 py-2 rounded-lg font-montserrat font-600 transition-colors ${
-                                  listing.destaque
-                                    ? 'bg-primary-red/20 text-red-text hover:bg-primary-red/30'
-                                    : 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
-                                }`}
+                                onClick={() => handleMarcarVendido(listing.id)}
+                                className="px-4 py-2 rounded-lg font-montserrat font-600 transition-colors bg-success/15 text-success hover:bg-success/25"
                               >
-                                {listing.destaque ? 'Remover Destaque' : 'Destacar'}
+                                Marquei como vendido
                               </button>
                             )}
                             <button

@@ -1,5 +1,7 @@
 
 import { create } from 'zustand'
+import toast from 'react-hot-toast'
+import { supabase, mensagemDeErro } from '../lib/supabase'
 import { useNotificationsStore } from './notificationsStore'
 
 export interface User {
@@ -47,7 +49,8 @@ interface UsersState {
   verifyUser: (userId: string) => Promise<boolean>
   deleteUser: (userId: string) => Promise<boolean>
   updateUser: (userId: string, updates: Partial<User>) => Promise<boolean>
-  initializeUsers: () => void
+  /** Carrega os usuários (do banco, ou de exemplo no modo demonstração). */
+  initializeUsers: () => Promise<void>
 }
 
 // Mock data para demonstração
@@ -129,253 +132,161 @@ const mockUsers: User[] = [
   }
 ]
 
-export const useUsersStore = create<UsersState>((set, get) => ({
-  users: [],
-  loading: false,
-  filters: {
-    search: '',
-    role: 'all',
-    status: 'all'
-  },
+type ProfileRow = {
+  id: string
+  nome: string
+  email: string
+  role: User['role']
+  status: User['status']
+  verified: boolean
+  telefone: string | null
+  cidade: string | null
+  uf: string | null
+  avatar_url: string | null
+  created_at: string
+  last_login: string | null
+}
 
-  setFilters: (newFilters) => {
-    set(state => ({
-      filters: { ...state.filters, ...newFilters }
-    }))
-  },
+const deLinha = (p: ProfileRow, stats?: { total_listings: number; total_views: number }): User => ({
+  id: p.id,
+  nome: p.nome,
+  email: p.email,
+  role: p.role,
+  status: p.status,
+  verified: p.verified,
+  telefone: p.telefone ?? undefined,
+  cidade: p.cidade ?? undefined,
+  uf: p.uf ?? undefined,
+  avatar: p.avatar_url ?? undefined,
+  created_at: p.created_at,
+  last_login: p.last_login ?? p.created_at,
+  total_listings: stats?.total_listings ?? 0,
+  total_views: stats?.total_views ?? 0,
+})
 
-  getFilteredUsers: () => {
-    const { users, filters } = get()
-    return users.filter(user => {
-      const matchesSearch = !filters.search || 
-        user.nome.toLowerCase().includes(filters.search.toLowerCase()) ||
-        user.email.toLowerCase().includes(filters.search.toLowerCase())
-      
-      const matchesRole = filters.role === 'all' || user.role === filters.role
-      const matchesStatus = filters.status === 'all' || user.status === filters.status
-      
-      return matchesSearch && matchesRole && matchesStatus
-    })
-  },
-
-  getUserStats: () => {
-    const { users } = get()
-    return {
-      total: users.length,
-      active: users.filter(u => u.status === 'ativo').length,
-      banned: users.filter(u => u.status === 'banido').length,
-      suspended: users.filter(u => u.status === 'suspenso').length,
-      admins: users.filter(u => u.role === 'admin').length,
-      verified: users.filter(u => u.verified).length
-    }
-  },
-
-  banUser: async (userId: string, reason: string) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === userId ? { ...user, status: 'banido' as const } : user
-        ),
-        loading: false
-      }))
-
-      const user = get().users.find(u => u.id === userId)
-      if (user) {
-        useNotificationsStore.getState().addNotification({
-          user_id: userId,
-          type: 'account',
-          title: 'Conta Banida',
-          message: `Sua conta foi banida. Motivo: ${reason}`,
-          read: false
-        })
-      }
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  unbanUser: async (userId: string) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === userId ? { ...user, status: 'ativo' as const } : user
-        ),
-        loading: false
-      }))
-
-      const user = get().users.find(u => u.id === userId)
-      if (user) {
-        useNotificationsStore.getState().addNotification({
-          user_id: userId,
-          type: 'account',
-          title: 'Conta Reativada',
-          message: 'Sua conta foi reativada e você pode usar a plataforma novamente.',
-          read: false
-        })
-      }
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  suspendUser: async (userId: string, reason: string, days: number) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === userId ? { ...user, status: 'suspenso' as const } : user
-        ),
-        loading: false
-      }))
-
-      const user = get().users.find(u => u.id === userId)
-      if (user) {
-        useNotificationsStore.getState().addNotification({
-          user_id: userId,
-          type: 'account',
-          title: 'Conta Suspensa',
-          message: `Sua conta foi suspensa por ${days} dias. Motivo: ${reason}`,
-          read: false
-        })
-      }
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  promoteToAdmin: async (userId: string) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === userId ? { ...user, role: 'admin' as const } : user
-        ),
-        loading: false
-      }))
-
-      const user = get().users.find(u => u.id === userId)
-      if (user) {
-        useNotificationsStore.getState().addNotification({
-          user_id: userId,
-          type: 'account',
-          title: 'Promovido a Administrador',
-          message: 'Parabéns! Você foi promovido a administrador da plataforma.',
-          read: false
-        })
-      }
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  demoteFromAdmin: async (userId: string) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === userId ? { ...user, role: 'user' as const } : user
-        ),
-        loading: false
-      }))
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  verifyUser: async (userId: string) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === userId ? { ...user, verified: true } : user
-        ),
-        loading: false
-      }))
-
-      const user = get().users.find(u => u.id === userId)
-      if (user) {
-        useNotificationsStore.getState().addNotification({
-          user_id: userId,
-          type: 'account',
-          title: 'Conta Verificada',
-          message: 'Sua conta foi verificada com sucesso!',
-          read: false
-        })
-      }
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  deleteUser: async (userId: string) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.filter(user => user.id !== userId),
-        loading: false
-      }))
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  updateUser: async (userId: string, updates: Partial<User>) => {
-    set({ loading: true })
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === userId ? { ...user, ...updates } : user
-        ),
-        loading: false
-      }))
-
-      return true
-    } catch {
-      set({ loading: false })
-      return false
-    }
-  },
-
-  initializeUsers: () => {
-    set({ users: mockUsers })
+/** Colunas da tabela profiles que o admin pode alterar. */
+const paraLinha = (u: Partial<User> & { suspended_until?: string | null; status_reason?: string | null }) => {
+  const row: Record<string, unknown> = {}
+  for (const k of ['nome', 'role', 'status', 'verified', 'telefone', 'cidade', 'uf', 'suspended_until', 'status_reason'] as const) {
+    if (k in u) row[k] = (u as Record<string, unknown>)[k] ?? null
   }
-}))
+  if ('avatar' in u) row.avatar_url = u.avatar ?? null
+  return row
+}
+
+export const useUsersStore = create<UsersState>((set, get) => {
+  /** Muda na tela, grava no banco e avisa o usuário; desfaz se falhar. */
+  const alterar = async (
+    userId: string,
+    updates: Partial<User> & { suspended_until?: string | null; status_reason?: string | null },
+    aviso?: { title: string; message: string },
+  ) => {
+    const antes = get().users
+    set({ users: antes.map((u) => (u.id === userId ? { ...u, ...updates } : u)), loading: true })
+    if (supabase) {
+      const { data, error } = await supabase.from('profiles').update(paraLinha(updates)).eq('id', userId).select('id')
+      if (error || !data?.length) {
+        set({ users: antes, loading: false })
+        toast.error(error ? mensagemDeErro(error, 'Não foi possível alterar o usuário.') : 'Usuário não encontrado ou sem permissão.')
+        return false
+      }
+    }
+    set({ loading: false })
+    if (aviso) {
+      useNotificationsStore.getState().addNotification({ user_id: userId, type: 'account', read: false, ...aviso })
+    }
+    return true
+  }
+
+  return {
+    users: [],
+    loading: false,
+    filters: { search: '', role: 'all', status: 'all' },
+
+    setFilters: (newFilters) => set((state) => ({ filters: { ...state.filters, ...newFilters } })),
+
+    getFilteredUsers: () => {
+      const { users, filters } = get()
+      const busca = filters.search.toLowerCase()
+      return users.filter(
+        (u) =>
+          (!busca || u.nome.toLowerCase().includes(busca) || u.email.toLowerCase().includes(busca)) &&
+          (filters.role === 'all' || u.role === filters.role) &&
+          (filters.status === 'all' || u.status === filters.status),
+      )
+    },
+
+    getUserStats: () => {
+      const { users } = get()
+      return {
+        total: users.length,
+        active: users.filter((u) => u.status === 'ativo').length,
+        banned: users.filter((u) => u.status === 'banido').length,
+        suspended: users.filter((u) => u.status === 'suspenso').length,
+        admins: users.filter((u) => u.role === 'admin').length,
+        verified: users.filter((u) => u.verified).length,
+      }
+    },
+
+    banUser: (userId, reason) =>
+      alterar(userId, { status: 'banido', status_reason: reason }, { title: 'Conta bloqueada', message: `Sua conta foi bloqueada. Motivo: ${reason}` }),
+
+    unbanUser: (userId) =>
+      alterar(userId, { status: 'ativo', status_reason: null, suspended_until: null }, { title: 'Conta reativada', message: 'Sua conta foi reativada.' }),
+
+    suspendUser: (userId, reason, days) => {
+      const ate = new Date(Date.now() + days * 86400000)
+      return alterar(
+        userId,
+        { status: 'suspenso', status_reason: reason, suspended_until: ate.toISOString() },
+        { title: 'Conta suspensa', message: `Sua conta está suspensa até ${ate.toLocaleDateString('pt-BR')}. Motivo: ${reason}` },
+      )
+    },
+
+    promoteToAdmin: (userId) =>
+      alterar(userId, { role: 'admin' }, { title: 'Você agora é administrador', message: 'Sua conta recebeu acesso ao painel administrativo.' }),
+
+    demoteFromAdmin: (userId) => alterar(userId, { role: 'user' }),
+
+    verifyUser: (userId) =>
+      alterar(userId, { verified: true }, { title: 'Conta verificada', message: 'Sua conta foi verificada pela equipe RaceMarketBR.' }),
+
+    // Excluir o login de vez exige a chave secreta do Supabase, que não pode
+    // ficar no site. Aqui a conta é bloqueada e some da lista.
+    deleteUser: async (userId) => {
+      const ok = await alterar(userId, { status: 'banido', status_reason: 'Conta excluída pelo administrador' })
+      if (ok) {
+        set((state) => ({ users: state.users.filter((u) => u.id !== userId) }))
+        if (supabase) toast('Conta bloqueada. Para apagar o login de vez: Supabase → Authentication → Users.', { duration: 7000 })
+      }
+      return ok
+    },
+
+    updateUser: (userId, updates) => alterar(userId, updates),
+
+    initializeUsers: async () => {
+      if (!supabase) {
+        set({ users: mockUsers })
+        return
+      }
+      set({ loading: true })
+      const [perfis, stats] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, nome, email, role, status, status_reason, verified, telefone, cidade, uf, avatar_url, created_at, last_login')
+          .order('created_at', { ascending: false }),
+        supabase.from('profile_stats').select('id, total_listings, total_views'),
+      ])
+      set({ loading: false })
+      if (perfis.error) {
+        toast.error(mensagemDeErro(perfis.error, 'Não foi possível carregar os usuários.'))
+        return
+      }
+      const porId = new Map((stats.data ?? []).map((s) => [s.id as string, s as { total_listings: number; total_views: number }]))
+      const excluidos = (p: ProfileRow & { status_reason?: string }) => p.status_reason === 'Conta excluída pelo administrador'
+      set({
+        users: (perfis.data as ProfileRow[]).filter((p) => !excluidos(p)).map((p) => deLinha(p, porId.get(p.id))),
+      })
+    },
+  }
+})
