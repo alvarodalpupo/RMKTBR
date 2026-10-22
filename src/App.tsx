@@ -11,7 +11,6 @@ import AnuncioDetalhes from './pages/AnuncioDetalhes'
 import AnuncieSeuCarro from './pages/AnuncieSeuCarro'
 import Contato from './pages/Contato'
 import Login from './pages/Login'
-import Cadastro from './pages/Cadastro'
 import Painel from './pages/Painel'
 import Admin from './pages/Admin'
 import Vendidos from './pages/Vendidos'
@@ -32,7 +31,7 @@ function App() {
             <Route path="/vendidos" element={<Vendidos />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Cadastro />} />
+            <Route path="/cadastro" element={<Login mode="cadastro" />} />
             <Route path="/termos" element={<TermosUso />} />
             <Route path="/privacidade" element={<PoliticaPrivacidade />} />
             <Route 

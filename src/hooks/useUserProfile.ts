@@ -46,7 +46,7 @@ export const useUserProfile = () => {
     setLoading(true)
     try {
       const { list: profiles } = await lumi.entities.user_profiles.list({
-        filter: { user_id: user.userId }
+        filter: { user_id: user.id }
       })
 
       if (profiles && profiles.length > 0) {
@@ -54,7 +54,7 @@ export const useUserProfile = () => {
       } else {
         // Criar perfil padrão se não existir
         const defaultProfile: UserProfile = {
-          user_id: user.userId,
+          user_id: user.id,
           preferencias_notificacao: {
             email_anuncios: true,
             email_promocoes: false,

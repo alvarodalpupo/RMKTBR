@@ -30,8 +30,8 @@ const Painel = () => {
   const [previewAvatar, setPreviewAvatar] = useState<string>('')
 
   // Filtrar dados do usuário logado
-  const userListings = listings.filter(listing => listing.user_id === user?.userId)
-  const userNotifications = notifications.filter(notification => notification.user_id === user?.userId)
+  const userListings = listings.filter(listing => listing.user_id === user?.id)
+  const userNotifications = notifications.filter(notification => notification.user_id === user?.id)
   const unreadNotifications = userNotifications.filter(n => !n.read)
   const unreadCount = unreadNotifications.length
 
@@ -236,7 +236,7 @@ const Painel = () => {
                   MEU PAINEL
                 </h1>
                 <p className="text-gray-400 font-montserrat">
-                  Bem-vindo, <span className="text-primary-red font-600">{user?.userName}</span>
+                  Bem-vindo, <span className="text-primary-red font-600">{user?.nome}</span>
                 </p>
               </div>
             </div>
@@ -463,7 +463,7 @@ const Painel = () => {
                           </label>
                           <input
                             type="text"
-                            value={user?.userName || ''}
+                            value={user?.nome || ''}
                             disabled
                             className="w-full px-3 py-2 bg-primary-black border border-gray-800 rounded-lg text-gray-400 font-montserrat cursor-not-allowed"
                           />
@@ -569,7 +569,7 @@ const Painel = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <h4 className="font-montserrat font-600 text-white mb-2">Nome</h4>
-                          <p className="text-gray-300">{user?.userName || 'Não informado'}</p>
+                          <p className="text-gray-300">{user?.nome || 'Não informado'}</p>
                         </div>
 
                         <div>
@@ -977,7 +977,7 @@ const Painel = () => {
                 <h2 className="font-bebas text-3xl text-white">NOTIFICAÇÕES</h2>
                 {unreadCount > 0 && (
                   <button
-                    onClick={() => markAllAsRead(user?.userId || '')}
+                    onClick={() => markAllAsRead(user?.id || '')}
                     className="bg-primary-red hover:bg-red-700 text-white font-montserrat font-600 px-4 py-2 rounded-lg transition-colors"
                   >
                     Marcar todas como lidas

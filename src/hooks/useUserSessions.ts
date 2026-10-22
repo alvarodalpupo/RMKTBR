@@ -33,7 +33,7 @@ export const useUserSessions = () => {
     setLoading(true)
     try {
       const { list: userSessions } = await lumi.entities.user_sessions.list({
-        filter: { user_id: user.userId },
+        filter: { user_id: user.id },
         sort: { created_at: -1 }
       })
 
@@ -103,7 +103,7 @@ export const useUserSessions = () => {
 
     try {
       const sessionData = {
-        user_id: user.userId,
+        user_id: user.id,
         session_id: generateSessionId(),
         ip_address: await getClientIP(),
         user_agent: navigator.userAgent,

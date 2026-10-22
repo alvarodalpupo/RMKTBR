@@ -30,31 +30,6 @@ const Header = () => {
     { path: '/contato', label: 'Contato' }
   ];
 
-  const UserAvatar = ({ user }: { user: any }) => {
-    if (user?.photoURL) {
-      return (
-        <img 
-          src={user.photoURL} 
-          alt={user.nome}
-          className="w-8 h-8 rounded-full border-2 border-gray-600"
-          onError={(e) => {
-            e.currentTarget.style.display = 'none';
-            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-          }}
-        />
-      );
-    }
-    return <User className="w-5 h-5" />;
-  };
-
-  const getProviderBadge = (provider?: string) => {
-    const badges = {
-      google: '🔍',
-      facebook: '📘',
-      email: '✉️'
-    };
-    return badges[provider as keyof typeof badges] || '';
-  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-primary-black/95 backdrop-blur-sm border-b border-gray-800">
@@ -93,15 +68,9 @@ const Header = () => {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
                 >
-                  <UserAvatar user={user} />
-                  <User className="w-5 h-5 hidden" />
+                  <User className="w-5 h-5" />
                   <div className="flex items-center space-x-1">
                     <span className="font-montserrat">{user.nome}</span>
-                    {user.provider && (
-                      <span className="text-xs" title={`Logado via ${user.provider}`}>
-                        {getProviderBadge(user.provider)}
-                      </span>
-                    )}
                   </div>
                 </button>
 
@@ -117,11 +86,6 @@ const Header = () => {
                       <div className="px-4 py-2 border-b border-gray-700">
                         <p className="text-white font-montserrat font-600 text-sm">{user.nome}</p>
                         <p className="text-gray-400 text-xs">{user.email}</p>
-                        {user.provider && (
-                          <p className="text-gray-500 text-xs mt-1">
-                            Via {user.provider} {getProviderBadge(user.provider)}
-                          </p>
-                        )}
                       </div>
 
                       <Link
@@ -211,15 +175,9 @@ const Header = () => {
                 {user ? (
                   <div className="pt-4 border-t border-gray-800">
                     <div className="flex items-center space-x-2 text-gray-300 mb-4">
-                      <UserAvatar user={user} />
-                      <User className="w-5 h-5 hidden" />
+                      <User className="w-5 h-5" />
                       <div>
                         <span className="font-montserrat block">{user.nome}</span>
-                        {user.provider && (
-                          <span className="text-xs text-gray-500">
-                            Via {user.provider} {getProviderBadge(user.provider)}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <div className="flex flex-col space-y-2">

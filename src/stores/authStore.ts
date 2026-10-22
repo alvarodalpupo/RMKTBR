@@ -1,217 +1,101 @@
-
 import { create } from 'zustand'
+import { lumi } from '../lib/lumi'
 
-interface User {
+/**
+ * Autenticação real via Lumi.
+ *
+ * O login/cadastro acontece na janela segura do Lumi (auth.lumi.new), que
+ * cuida de senha, recuperação de senha e provedores sociais. O papel do
+ * usuário (ADMIN/USER) vem do servidor do Lumi — não é mais decidido pelo
+ * e-mail digitado no navegador.
+ *
+ * Importante: esta verificação no front-end só controla o que aparece na
+ * tela. Quem garante a segurança dos dados são as permissões das entidades
+ * configuradas no painel do Lumi.
+ */
+
+export interface User {
   id: string
   nome: string
   email: string
   role: 'user' | 'admin'
-  photoURL?: string
-  provider?: 'email' | 'google' | 'facebook'
+  createdAt?: string
+}
+
+/** Formato do usuário retornado pelo Lumi (inclui o papel definido no servidor). */
+interface LumiUser {
+  userId: string
+  email: string
+  userName: string
+  createdTime: string
+  userRole?: 'ADMIN' | 'USER'
 }
 
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  loginWithGoogle: () => Promise<boolean>
-  loginWithFacebook: () => Promise<boolean>
-  register: (nome: string, email: string, password: string) => Promise<boolean>
+  /** Abre a janela de login/cadastro do Lumi. Retorna true se o usuário entrou. */
+  login: () => Promise<boolean>
   logout: () => void
-  forgotPassword: (email: string) => Promise<boolean>
-  resetPassword: (token: string, newPassword: string) => Promise<boolean>
-  updateProfile: (data: Partial<User>) => Promise<boolean>
+  /** Revalida o usuário no servidor (ex.: após mudar o papel no painel do Lumi). */
+  refresh: () => Promise<void>
 }
 
-// Simulação de Firebase Auth para desenvolvimento
-const simulateFirebaseAuth = () => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Simular 90% de sucesso
-      if (Math.random() > 0.1) {
-        resolve(true)
-      } else {
-        reject(new Error('Simulated auth error'))
-      }
-    }, 1000 + Math.random() * 1000) // 1-2 segundos
-  })
+const mapUser = (raw: LumiUser | null): User | null => {
+  if (!raw) return null
+  return {
+    id: raw.userId,
+    nome: raw.userName || raw.email?.split('@')[0] || 'Usuário',
+    email: raw.email,
+    role: raw.userRole === 'ADMIN' ? 'admin' : 'user',
+    createdAt: raw.createdTime,
+  }
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  isAuthenticated: false,
+const readSession = () => {
+  const user = mapUser(lumi.auth.user as LumiUser | null)
+  return { user, isAuthenticated: lumi.auth.isAuthenticated && !!user }
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  ...readSession(),
   isLoading: false,
 
-  login: async (email: string, password: string) => {
+  login: async () => {
     set({ isLoading: true })
     try {
-      await simulateFirebaseAuth()
-      
-      // Mock user data - em produção viria da API/Firebase
-      const mockUser: User = {
-        id: '1',
-        nome: email === 'admin@racemarket.com' ? 'Alvaro Dalp' : 'Usuário Teste',
-        email,
-        role: email === 'admin@racemarket.com' ? 'admin' : 'user',
-        provider: 'email'
-      }
-      
-      set({ user: mockUser, isAuthenticated: true, isLoading: false })
+      await lumi.auth.signIn()
+      set({ ...readSession(), isLoading: false })
       return true
     } catch (error) {
+      // Janela fechada pelo usuário ou bloqueada pelo navegador
+      console.warn('Login não concluído:', error)
       set({ isLoading: false })
-      
-      // Simular diferentes tipos de erro Firebase
-      const errorTypes = [
-        { code: 'auth/wrong-password', message: 'Senha incorreta' },
-        { code: 'auth/user-not-found', message: 'Usuário não encontrado' },
-        { code: 'auth/invalid-email', message: 'E-mail inválido' },
-        { code: 'auth/too-many-requests', message: 'Muitas tentativas' }
-      ]
-      
-      const randomError = errorTypes[Math.floor(Math.random() * errorTypes.length)]
-      const firebaseError = new Error(randomError.message) as any
-      firebaseError.code = randomError.code
-      
-      throw firebaseError
-    }
-  },
-
-  loginWithGoogle: async () => {
-    set({ isLoading: true })
-    try {
-      await simulateFirebaseAuth()
-      
-      const googleUser: User = {
-        id: 'google_' + Date.now(),
-        nome: 'Usuário Google',
-        email: 'usuario@gmail.com',
-        role: 'user',
-        photoURL: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-        provider: 'google'
-      }
-      
-      set({ user: googleUser, isAuthenticated: true, isLoading: false })
-      return true
-    } catch (error) {
-      set({ isLoading: false })
-      throw error
-    }
-  },
-
-  loginWithFacebook: async () => {
-    set({ isLoading: true })
-    try {
-      await simulateFirebaseAuth()
-      
-      const facebookUser: User = {
-        id: 'facebook_' + Date.now(),
-        nome: 'Usuário Facebook',
-        email: 'usuario@facebook.com',
-        role: 'user',
-        photoURL: 'https://graph.facebook.com/v3.0/me/picture?type=large',
-        provider: 'facebook'
-      }
-      
-      set({ user: facebookUser, isAuthenticated: true, isLoading: false })
-      return true
-    } catch (error) {
-      set({ isLoading: false })
-      throw error
-    }
-  },
-
-  register: async (nome: string, email: string, password: string) => {
-    set({ isLoading: true })
-    try {
-      await simulateFirebaseAuth()
-      
-      const newUser: User = {
-        id: Date.now().toString(),
-        nome,
-        email,
-        role: 'user',
-        provider: 'email'
-      }
-      
-      set({ user: newUser, isAuthenticated: true, isLoading: false })
-      return true
-    } catch (error) {
-      set({ isLoading: false })
-      
-      // Simular erros específicos do Firebase para registro
-      const registerErrors = [
-        { code: 'auth/email-already-in-use', message: 'E-mail já está em uso' },
-        { code: 'auth/invalid-email', message: 'E-mail inválido' },
-        { code: 'auth/weak-password', message: 'Senha muito fraca' },
-        { code: 'auth/operation-not-allowed', message: 'Operação não permitida' }
-      ]
-      
-      const randomError = registerErrors[Math.floor(Math.random() * registerErrors.length)]
-      const firebaseError = new Error(randomError.message) as any
-      firebaseError.code = randomError.code
-      
-      throw firebaseError
+      return false
     }
   },
 
   logout: () => {
+    lumi.auth.signOut()
     set({ user: null, isAuthenticated: false })
   },
 
-  forgotPassword: async (email: string) => {
-    set({ isLoading: true })
+  refresh: async () => {
+    if (!lumi.auth.isAuthenticated) return
     try {
-      await simulateFirebaseAuth()
-      set({ isLoading: false })
-      return true
-    } catch (error) {
-      set({ isLoading: false })
-      
-      // Simular erros de recuperação de senha
-      const resetErrors = [
-        { code: 'auth/invalid-email', message: 'E-mail inválido' },
-        { code: 'auth/user-not-found', message: 'Usuário não encontrado' }
-      ]
-      
-      const randomError = resetErrors[Math.floor(Math.random() * resetErrors.length)]
-      const firebaseError = new Error(randomError.message) as any
-      firebaseError.code = randomError.code
-      
-      throw firebaseError
+      await lumi.auth.refreshUser()
+      set(readSession())
+    } catch {
+      // Token expirado ou inválido: encerra a sessão local
+      lumi.auth.signOut()
+      set({ user: null, isAuthenticated: false })
     }
   },
-
-  resetPassword: async (token: string, newPassword: string) => {
-    set({ isLoading: true })
-    try {
-      await simulateFirebaseAuth()
-      set({ isLoading: false })
-      return true
-    } catch (error) {
-      set({ isLoading: false })
-      throw error
-    }
-  },
-
-  updateProfile: async (data: Partial<User>) => {
-    set({ isLoading: true })
-    try {
-      await simulateFirebaseAuth()
-      
-      const currentUser = get().user
-      if (currentUser) {
-        const updatedUser = { ...currentUser, ...data }
-        set({ user: updatedUser, isLoading: false })
-        return true
-      }
-      
-      set({ isLoading: false })
-      return false
-    } catch (error) {
-      set({ isLoading: false })
-      throw error
-    }
-  }
 }))
+
+// Mantém o estado sincronizado entre abas e com mudanças feitas pelo SDK.
+lumi.auth.onAuthChange(() => useAuthStore.setState(readSession()))
+
+// Confirma no servidor que a sessão salva ainda é válida e atualiza o papel.
+void useAuthStore.getState().refresh()
