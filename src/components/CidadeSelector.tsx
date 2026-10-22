@@ -162,7 +162,7 @@ const CidadeSelector: React.FC<CidadeSelectorProps> = ({
                   className={`w-full text-left px-4 py-3 hover:bg-gray-800 transition-colors font-montserrat flex items-center justify-between ${
                     index === highlightedIndex ? 'bg-gray-800' : ''
                   } ${
-                    cidade === cidadeSelecionada ? 'text-primary-red' : 'text-white'
+                    cidade === cidadeSelecionada ? 'text-red-text' : 'text-white'
                   }`}
                 >
                   <span className="flex items-center">
@@ -170,7 +170,7 @@ const CidadeSelector: React.FC<CidadeSelectorProps> = ({
                     {cidade}
                   </span>
                   {cidade === cidadeSelecionada && (
-                    <Check className="w-4 h-4 text-primary-red" />
+                    <Check className="w-4 h-4 text-red-text" />
                   )}
                 </button>
               ))}

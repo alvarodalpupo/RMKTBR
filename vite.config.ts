@@ -29,6 +29,19 @@ export default defineConfig(({ mode }) => {
     }
   }
 
+  // Separa as bibliotecas (mudam pouco) do código do site (muda sempre),
+  // assim o navegador reaproveita o cache entre uma publicação e outra.
+  build ??= {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          motion: ['framer-motion'],
+        },
+      },
+    },
+  }
+
   return {
     plugins: [react()],
     build,

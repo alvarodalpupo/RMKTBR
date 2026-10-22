@@ -1,16 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Upload, X, Car, MapPin, DollarSign, FileText, Phone, Camera, Plus, Zap, Settings, AlertTriangle, RefreshCw, Shield, Lock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Upload, X, Car, MapPin, FileText, Phone, Camera, Plus, Zap, Settings, AlertTriangle, RefreshCw, Shield, Lock, UserPlus, Banknote, Lightbulb } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { useListingsStore } from '../stores/listingsStore';
 import { estadosCidades, buscarCidadesPorEstado, formatarNomeEstado } from '../data/estados-cidades';
-import { formatarPreco, extrairValorNumerico, formatarTelefone, validarPreco, validarTelefone } from '../utils/formatters';
+import { formatarPreco, formatarTelefone, validarPreco, validarTelefone } from '../utils/formatters';
 import CidadeSelector from '../components/CidadeSelector';
 import TrustBadge from '../components/TrustBadge';
 import SecurityTooltip from '../components/SecurityTooltip';
-import SocialProofCounter from '../components/SocialProofCounter';
 import toast from 'react-hot-toast';
 
 const AnuncieSeuCarro = () => {
@@ -27,6 +26,8 @@ const AnuncieSeuCarro = () => {
     uf: '',
     descricao: '',
     telefone: '',
+    email: '', // Novo campo para visitantes não logados
+    nome_anunciante: '', // Novo campo para visitantes não logados
     images: [] as string[],
     power_whp: '',
     torque_kgfm: '',
@@ -54,35 +55,35 @@ const AnuncieSeuCarro = () => {
   }, [formData.uf, formData.cidade]);
 
   const categorias = [
-  { id: 'turbo', label: 'Turbo', color: 'turbo-primary' },
-  { id: 'aspirado', label: 'Aspirado', color: 'aspirado-primary' },
-  { id: 'original', label: 'Original', color: 'original-primary' },
-  { id: 'pista', label: 'Pista', color: 'pista-primary' }];
-
+    { id: 'turbo', label: 'Turbo', color: 'turbo-primary' },
+    { id: 'aspirado', label: 'Aspirado', color: 'aspirado-primary' },
+    { id: 'original', label: 'Original', color: 'original-primary' },
+    { id: 'pista', label: 'Pista', color: 'pista-primary' }
+  ];
 
   const tiposTracao = [
-  {
-    id: 'dianteira',
-    label: 'Tração Dianteira',
-    sigla: 'FWD',
-    description: 'Força aplicada nas rodas dianteiras',
-    color: 'blue'
-  },
-  {
-    id: 'traseira',
-    label: 'Tração Traseira',
-    sigla: 'RWD',
-    description: 'Força aplicada nas rodas traseiras',
-    color: 'red'
-  },
-  {
-    id: 'integral',
-    label: 'Tração Integral',
-    sigla: 'AWD',
-    description: 'Força em todas as rodas',
-    color: 'green'
-  }];
-
+    {
+      id: 'dianteira',
+      label: 'Tração Dianteira',
+      sigla: 'FWD',
+      description: 'Força aplicada nas rodas dianteiras',
+      color: 'blue'
+    },
+    {
+      id: 'traseira',
+      label: 'Tração Traseira',
+      sigla: 'RWD',
+      description: 'Força aplicada nas rodas traseiras',
+      color: 'red'
+    },
+    {
+      id: 'integral',
+      label: 'Tração Integral',
+      sigla: 'AWD',
+      description: 'Força em todas as rodas',
+      color: 'green'
+    }
+  ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -174,12 +175,7 @@ const AnuncieSeuCarro = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      toast.error('Você precisa estar logado para criar um anúncio');
-      return;
-    }
-
-    // Validações
+    // Validações básicas
     if (formData.images.length === 0) {
       toast.error('Adicione pelo menos uma imagem');
       return;
@@ -215,30 +211,79 @@ const AnuncieSeuCarro = () => {
       return;
     }
 
-    // Para demonstração, vamos usar URLs de exemplo do Pexels se não houver imagens
-    const finalImages = formData.images.length > 0 ?
-    formData.images :
-    ['https://images.pexels.com/photos/3729464/pexels-photo-3729464.jpeg'];
+    // Validações específicas para visitantes não logados
+    if (!user) {
+      if (!formData.nome_anunciante.trim()) {
+        toast.error('Nome do anunciante é obrigatório');
+        return;
+      }
+
+      if (!formData.email.trim()) {
+        toast.error('E-mail é obrigatório');
+        return;
+      }
+
+      // Validação básica de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error('E-mail inválido');
+        return;
+      }
+    }
 
     const listingData = {
-      ...formData,
-      user_id: user.id,
+      titulo: formData.titulo.trim(),
+      categoria: formData.categoria,
+      ano: Number(formData.ano),
+      preco: formData.preco,
+      cidade: formData.cidade,
+      uf: formData.uf,
+      descricao: formData.descricao.trim() || undefined,
+      telefone: formData.telefone.trim(),
       destaque: false,
-      images: finalImages,
+      aceita_troca: formData.aceita_troca,
+      images: formData.images,
       power_whp: formData.power_whp ? parseFloat(formData.power_whp) : undefined,
       torque_kgfm: formData.torque_kgfm ? parseFloat(formData.torque_kgfm) : undefined,
       tracao: formData.tracao as 'dianteira' | 'traseira' | 'integral',
-      telefone: formData.telefone.trim(),
-      preco: formData.preco // Mantém formatado para exibição
+      // Só para quem anuncia sem conta (fica visível apenas ao admin)
+      nome_anunciante: user ? undefined : formData.nome_anunciante.trim(),
+      email: user ? undefined : formData.email.trim(),
     };
 
     const success = await createListing(listingData);
 
     if (success) {
-      toast.success('Anúncio enviado para revisão! Você será notificado quando for aprovado.');
-      navigate('/painel');
-    } else {
-      toast.error('Erro ao criar anúncio. Tente novamente.');
+      toast.success(user ? 'Anúncio enviado para revisão. Você recebe uma notificação no Painel quando for aprovado.' : 'Anúncio enviado para revisão. Nossa equipe confere e publica em breve.');
+      
+      // Se o usuário não estiver logado, mostrar mensagem específica
+
+      // Limpar formulário após sucesso
+      setFormData({
+        titulo: '',
+        categoria: 'turbo',
+        ano: new Date().getFullYear(),
+        preco: '',
+        cidade: '',
+        uf: '',
+        descricao: '',
+        telefone: '',
+        email: '',
+        nome_anunciante: '',
+        images: [],
+        power_whp: '',
+        torque_kgfm: '',
+        tracao: '',
+        aceita_troca: false
+      });
+
+      // Redirecionar baseado no status do usuário
+      if (user) {
+        navigate('/painel');
+      } else {
+        // Para visitantes, redirecionar para a página inicial
+        navigate('/');
+      }
     }
   };
 
@@ -248,33 +293,33 @@ const AnuncieSeuCarro = () => {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto">
-
+          className="max-w-4xl mx-auto"
+        >
           {/* Header com Elementos de Confiança */}
           <div className="text-center mb-8">
-            {/* Trust Badges - Topo */}
-            
-
-
-
+            {/* Aviso para Visitantes Não Logados */}
+            {!user && (
+              <div className="bg-gradient-to-r from-blue-500/10 to-green-500/10 border border-blue-500/30 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-3">
+                  <UserPlus className="w-6 h-6 text-blue-400 mt-1" />
+                  <div>
+                    <h3 className="text-blue-400 font-montserrat font-600 mb-1">
+                      Anuncie grátis, sem cadastro
+                    </h3>
+                    <p className="text-gray-300 font-montserrat text-sm">
+                      Você pode criar seu anúncio imediatamente. Após a aprovação, enviaremos uma confirmação por e-mail.
+                      <br />
+                      <strong>Dica:</strong> <a href="/cadastro" className="text-blue-400 underline">Crie uma conta</a> para gerenciar seus anúncios facilmente.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Título Principal com Ícone de Segurança */}
             <div className="flex items-center justify-center space-x-4 mb-4">
               <SecurityTooltip position="bottom">
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
+                <Shield className="w-8 h-8 text-green-500" />
               </SecurityTooltip>
 
               <h1 className="font-bebas text-4xl md:text-5xl text-white">
@@ -282,41 +327,79 @@ const AnuncieSeuCarro = () => {
               </h1>
 
               <SecurityTooltip position="bottom">
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                <Lock className="w-8 h-8 text-green-500" />
               </SecurityTooltip>
             </div>
 
             <p className="text-gray-400 font-montserrat text-lg mb-6">
-              Preencha os dados do seu veículo e envie para aprovação
+              {user ? 
+                'Preencha os dados do seu veículo e envie para aprovação' :
+                'Preencha os dados do seu veículo - É rápido e gratuito!'
+              }
             </p>
-
-            {/* Social Proof Counters */}
-            
-
-
-
 
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Dados do Anunciante - APENAS para visitantes não logados */}
+            {!user && (
+              <div className="bg-gradient-to-br from-blue-900/20 via-primary-gray to-blue-800/10 border-2 border-blue-500/30 rounded-xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+                
+                <div className="relative z-10">
+                  <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
+                    <UserPlus className="w-6 h-6 mr-3 text-blue-500" />
+                    SEUS DADOS
+                    <div className="ml-4 flex items-center space-x-2">
+                      <AlertTriangle className="w-4 h-4 text-red-400" />
+                      <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full font-montserrat font-700">
+                        OBRIGATÓRIO
+                      </span>
+                    </div>
+                  </h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-white font-montserrat font-600 mb-2">
+                        Seu Nome *
+                      </label>
+                      <input
+                        type="text"
+                        name="nome_anunciante"
+                        value={formData.nome_anunciante}
+                        onChange={handleInputChange}
+                        placeholder="Ex: João Silva"
+                        className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-blue-500 focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-montserrat font-600 mb-2">
+                        Seu E-mail *
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="seu@email.com"
+                        className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-blue-500 focus:outline-none"
+                        required
+                      />
+                      <p className="text-gray-500 text-xs mt-1 font-montserrat">
+                        Usaremos para notificar sobre o status do anúncio
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Informações Básicas */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <Car className="w-6 h-6 mr-3 text-primary-red" />
+                <Car className="w-6 h-6 mr-3 text-red-text" />
                 INFORMAÇÕES DO VEÍCULO
               </h2>
 
@@ -332,8 +415,8 @@ const AnuncieSeuCarro = () => {
                     onChange={handleInputChange}
                     placeholder="Ex: Honda Civic Type R 2019"
                     className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-primary-red focus:outline-none"
-                    required />
-
+                    required
+                  />
                 </div>
 
                 <div>
@@ -348,8 +431,8 @@ const AnuncieSeuCarro = () => {
                     min="1950"
                     max={new Date().getFullYear() + 1}
                     className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-primary-red focus:outline-none"
-                    required />
-
+                    required
+                  />
                 </div>
               </div>
 
@@ -359,20 +442,20 @@ const AnuncieSeuCarro = () => {
                   Categoria *
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {categorias.map((categoria) =>
-                  <button
-                    key={categoria.id}
-                    type="button"
-                    onClick={() => handleCategoryChange(categoria.id as any)}
-                    className={`p-4 rounded-lg border-2 transition-all font-montserrat font-600 ${
-                    formData.categoria === categoria.id ?
-                    `border-${categoria.color} bg-${categoria.color}/10 text-${categoria.color}` :
-                    'border-gray-800 bg-primary-black text-gray-400 hover:border-gray-600'}`
-                    }>
-
+                  {categorias.map((categoria) => (
+                    <button
+                      key={categoria.id}
+                      type="button"
+                      onClick={() => handleCategoryChange(categoria.id as Parameters<typeof handleCategoryChange>[0])}
+                      className={`p-4 rounded-lg border-2 transition-all font-montserrat font-600 ${
+                        formData.categoria === categoria.id
+                          ? `border-${categoria.color} bg-${categoria.color}/10 text-${categoria.color}`
+                          : 'border-gray-800 bg-primary-black text-gray-400 hover:border-gray-600'
+                      }`}
+                    >
                       {categoria.label}
                     </button>
-                  )}
+                  ))}
                 </div>
               </div>
             </div>
@@ -398,7 +481,7 @@ const AnuncieSeuCarro = () => {
                     <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
                     <div>
                       <h3 className="text-green-400 font-montserrat font-600 mb-1 flex items-center">
-                        🔄 Aumente suas Chances de Venda
+                        Aumente suas chances de venda
                       </h3>
                       <p className="text-gray-300 font-montserrat text-sm">
                         Anúncios que aceitam troca recebem <strong>40% mais contatos</strong>. 
@@ -413,56 +496,56 @@ const AnuncieSeuCarro = () => {
                     type="button"
                     onClick={() => handleAceitaTrocaChange(true)}
                     className={`group relative p-6 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                    formData.aceita_troca ?
-                    'border-green-500 bg-green-500/20 shadow-lg shadow-green-500/25' :
-                    'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'}`
-                    }>
-
+                      formData.aceita_troca
+                        ? 'border-green-500 bg-green-500/20 shadow-lg shadow-green-500/25'
+                        : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
+                    }`}
+                  >
                     <div className="text-center">
-                      <div className="text-4xl mb-3">✅</div>
+                      <RefreshCw className="w-8 h-8 mx-auto mb-3 text-success" />
                       <div className={`font-montserrat font-600 text-lg mb-2 ${
-                      formData.aceita_troca ? 'text-white' : 'text-gray-300'}`
-                      }>
+                        formData.aceita_troca ? 'text-white' : 'text-gray-300'
+                      }`}>
                         Sim, aceito troca
                       </div>
                       <div className={`text-sm font-montserrat ${
-                      formData.aceita_troca ? 'text-gray-300' : 'text-gray-500'}`
-                      }>
+                        formData.aceita_troca ? 'text-gray-300' : 'text-gray-500'
+                      }`}>
                         Aberto a negociações de troca
                       </div>
                     </div>
 
-                    {formData.aceita_troca &&
-                    <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    }
+                    {formData.aceita_troca && (
+                      <div className="absolute top-2 right-2 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    )}
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleAceitaTrocaChange(false)}
                     className={`group relative p-6 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                    !formData.aceita_troca ?
-                    'border-red-500 bg-red-500/20 shadow-lg shadow-red-500/25' :
-                    'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'}`
-                    }>
-
+                      !formData.aceita_troca
+                        ? 'border-red-500 bg-red-500/20 shadow-lg shadow-red-500/25'
+                        : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
+                    }`}
+                  >
                     <div className="text-center">
-                      <div className="text-4xl mb-3">💰</div>
+                      <Banknote className="w-8 h-8 mx-auto mb-3 text-warning" />
                       <div className={`font-montserrat font-600 text-lg mb-2 ${
-                      !formData.aceita_troca ? 'text-white' : 'text-gray-300'}`
-                      }>
+                        !formData.aceita_troca ? 'text-white' : 'text-gray-300'
+                      }`}>
                         Não, apenas venda
                       </div>
                       <div className={`text-sm font-montserrat ${
-                      !formData.aceita_troca ? 'text-gray-300' : 'text-gray-500'}`
-                      }>
+                        !formData.aceita_troca ? 'text-gray-300' : 'text-gray-500'
+                      }`}>
                         Somente negociação em dinheiro
                       </div>
                     </div>
 
-                    {!formData.aceita_troca &&
-                    <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    }
+                    {!formData.aceita_troca && (
+                      <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    )}
                   </button>
                 </div>
               </div>
@@ -483,7 +566,7 @@ const AnuncieSeuCarro = () => {
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
                   <div>
                     <h3 className="text-yellow-400 font-montserrat font-600 mb-1">
-                      📊 Dados de Performance Aumentam Visualizações
+                      Dados de performance aumentam as visualizações
                     </h3>
                     <p className="text-gray-300 font-montserrat text-sm">
                       Anúncios com dados de potência e torque recebem até <strong>3x mais visualizações</strong>. 
@@ -506,8 +589,8 @@ const AnuncieSeuCarro = () => {
                     placeholder="Ex: 320"
                     min="50"
                     max="2000"
-                    className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-yellow-500 focus:outline-none" />
-
+                    className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-yellow-500 focus:outline-none"
+                  />
                   <p className="text-gray-500 text-xs mt-1 font-montserrat">
                     Potência nas rodas (Wheel Horsepower)
                   </p>
@@ -526,8 +609,8 @@ const AnuncieSeuCarro = () => {
                     min="10"
                     max="200"
                     step="0.1"
-                    className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-yellow-500 focus:outline-none" />
-
+                    className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-yellow-500 focus:outline-none"
+                  />
                   <p className="text-gray-500 text-xs mt-1 font-montserrat">
                     Torque em quilograma-força por metro
                   </p>
@@ -536,7 +619,7 @@ const AnuncieSeuCarro = () => {
 
               <div className="mt-4 bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
                 <p className="text-blue-400 font-montserrat text-sm flex items-center">
-                  💡 <span className="ml-2"><strong>Dica:</strong> Dados de dinamômetro são mais precisos. Se não souber os valores exatos, deixe em branco.</span>
+                  <Lightbulb className="w-4 h-4 inline -mt-0.5 text-warning" /> <span className="ml-2"><strong>Dica:</strong> Dados de dinamômetro são mais precisos. Se não souber os valores exatos, deixe em branco.</span>
                 </p>
               </div>
             </div>
@@ -547,7 +630,7 @@ const AnuncieSeuCarro = () => {
               
               <div className="relative z-10">
                 <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                  <Settings className="w-6 h-6 mr-3 text-primary-red" />
+                  <Settings className="w-6 h-6 mr-3 text-red-text" />
                   TIPO DE TRAÇÃO
                   <div className="ml-4 flex items-center space-x-2">
                     <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse" />
@@ -558,56 +641,56 @@ const AnuncieSeuCarro = () => {
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {tiposTracao.map((tipo) =>
-                  <button
-                    key={tipo.id}
-                    type="button"
-                    onClick={() => handleTracaoChange(tipo.id as any)}
-                    className={`group relative p-6 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                    formData.tracao === tipo.id ?
-                    `border-${tipo.color}-500 bg-${tipo.color}-500/20 shadow-lg shadow-${tipo.color}-500/25` :
-                    'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'}`
-                    }>
-
+                  {tiposTracao.map((tipo) => (
+                    <button
+                      key={tipo.id}
+                      type="button"
+                      onClick={() => handleTracaoChange(tipo.id as Parameters<typeof handleTracaoChange>[0])}
+                      className={`group relative p-6 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                        formData.tracao === tipo.id
+                          ? `border-${tipo.color}-500 bg-${tipo.color}-500/20 shadow-lg shadow-${tipo.color}-500/25`
+                          : 'border-gray-700 bg-gray-800/50 hover:border-gray-600 hover:bg-gray-800'
+                      }`}
+                    >
                       <div className="text-center">
                         <div className={`text-xs font-montserrat font-700 mb-2 ${
-                      formData.tracao === tipo.id ? `text-${tipo.color}-400` : 'text-gray-400'}`
-                      }>
+                          formData.tracao === tipo.id ? `text-${tipo.color}-400` : 'text-gray-400'
+                        }`}>
                           {tipo.sigla}
                         </div>
                         <div className={`font-montserrat font-600 text-sm mb-2 ${
-                      formData.tracao === tipo.id ? 'text-white' : 'text-gray-300'}`
-                      }>
+                          formData.tracao === tipo.id ? 'text-white' : 'text-gray-300'
+                        }`}>
                           {tipo.label}
                         </div>
                         <div className={`text-xs font-montserrat ${
-                      formData.tracao === tipo.id ? 'text-gray-300' : 'text-gray-500'}`
-                      }>
+                          formData.tracao === tipo.id ? 'text-gray-300' : 'text-gray-500'
+                        }`}>
                           {tipo.description}
                         </div>
                       </div>
 
-                      {formData.tracao === tipo.id &&
-                    <div className={`absolute top-2 right-2 w-3 h-3 bg-${tipo.color}-500 rounded-full animate-pulse`}></div>
-                    }
+                      {formData.tracao === tipo.id && (
+                        <div className={`absolute top-2 right-2 w-3 h-3 bg-${tipo.color}-500 rounded-full animate-pulse`}></div>
+                      )}
                     </button>
-                  )}
+                  ))}
                 </div>
 
-                {!formData.tracao &&
-                <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                {!formData.tracao && (
+                  <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
                     <p className="text-yellow-400 font-montserrat text-sm flex items-center">
-                      ⚠️ <span className="ml-2">Selecione o tipo de tração para continuar</span>
+                      <AlertTriangle className="w-4 h-4 inline -mt-0.5" /> <span className="ml-2">Selecione o tipo de tração para continuar</span>
                     </p>
                   </div>
-                }
+                )}
               </div>
             </div>
 
             {/* Localização e Preço - ATUALIZADO */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <MapPin className="w-6 h-6 mr-3 text-primary-red" />
+                <MapPin className="w-6 h-6 mr-3 text-red-text" />
                 LOCALIZAÇÃO E PREÇO
               </h2>
 
@@ -622,20 +705,20 @@ const AnuncieSeuCarro = () => {
                     value={formData.uf}
                     onChange={handleEstadoChange}
                     className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-primary-red focus:outline-none"
-                    required>
-
+                    required
+                  >
                     <option value="">Selecione o Estado</option>
-                    {estadosCidades.map((estado) =>
-                    <option key={estado.codigo} value={estado.codigo}>
+                    {estadosCidades.map((estado) => (
+                      <option key={estado.codigo} value={estado.codigo}>
                         {formatarNomeEstado(estado.codigo)}
                       </option>
-                    )}
+                    ))}
                   </select>
-                  {formData.uf &&
-                  <p className="text-green-400 text-xs mt-1 font-montserrat">
-                      ✓ {cidadesDisponiveis.length} cidades disponíveis
+                  {formData.uf && (
+                    <p className="text-green-400 text-xs mt-1 font-montserrat">
+                      {cidadesDisponiveis.length} cidades disponíveis
                     </p>
-                  }
+                  )}
                 </div>
 
                 {/* Cidade - Componente personalizado */}
@@ -645,8 +728,8 @@ const AnuncieSeuCarro = () => {
                     cidadeSelecionada={formData.cidade}
                     onCidadeChange={handleCidadeChange}
                     estadoSelecionado={formData.uf}
-                    disabled={!formData.uf} />
-
+                    disabled={!formData.uf}
+                  />
                 </div>
 
                 {/* Preço com formatação automática */}
@@ -661,19 +744,19 @@ const AnuncieSeuCarro = () => {
                     onChange={handlePrecoChange}
                     placeholder="Digite o valor"
                     className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-primary-red focus:outline-none"
-                    required />
-
+                    required
+                  />
                   <p className="text-gray-500 text-xs mt-1 font-montserrat">
-                    {formData.preco ?
-                    `Valor: ${formData.preco}` :
-                    'Digite apenas números (ex: 285000)'
+                    {formData.preco
+                      ? `Valor: ${formData.preco}`
+                      : 'Digite apenas números (ex: 285000)'
                     }
                   </p>
-                  {formData.preco && !validarPreco(formData.preco) &&
-                  <p className="text-red-400 text-xs mt-1 font-montserrat">
-                      ⚠️ Preço deve estar entre R$ 1,00 e R$ 10.000.000,00
+                  {formData.preco && !validarPreco(formData.preco) && (
+                    <p className="text-red-400 text-xs mt-1 font-montserrat">
+                      Preço deve estar entre R$ 1,00 e R$ 10.000.000,00
                     </p>
-                  }
+                  )}
                 </div>
               </div>
             </div>
@@ -681,7 +764,7 @@ const AnuncieSeuCarro = () => {
             {/* Contato - WhatsApp OBRIGATÓRIO com formatação */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <Phone className="w-6 h-6 mr-3 text-primary-red" />
+                <Phone className="w-6 h-6 mr-3 text-red-text" />
                 CONTATO
                 <div className="ml-4 flex items-center space-x-2">
                   <AlertTriangle className="w-4 h-4 text-red-400" />
@@ -696,7 +779,7 @@ const AnuncieSeuCarro = () => {
                   <div className="w-2 h-2 bg-red-400 rounded-full mt-2"></div>
                   <div>
                     <h3 className="text-red-400 font-montserrat font-600 mb-1">
-                      📱 WhatsApp é Obrigatório
+                      WhatsApp é obrigatório
                     </h3>
                     <p className="text-gray-300 font-montserrat text-sm">
                       O WhatsApp é a principal forma de contato entre compradores e vendedores. 
@@ -717,26 +800,26 @@ const AnuncieSeuCarro = () => {
                   onChange={handleTelefoneChange}
                   placeholder="Digite o número"
                   className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-primary-red focus:outline-none"
-                  required />
-
+                  required
+                />
                 <p className="text-gray-500 text-xs mt-1 font-montserrat">
-                  {formData.telefone ?
-                  `Formatado: ${formData.telefone}` :
-                  'Digite apenas números com DDD (ex: 11999999999)'
+                  {formData.telefone
+                    ? `Formatado: ${formData.telefone}`
+                    : 'Digite apenas números com DDD (ex: 11999999999)'
                   }
                 </p>
-                {formData.telefone && !validarTelefone(formData.telefone) &&
-                <p className="text-red-400 text-xs mt-1 font-montserrat">
-                    ⚠️ Número inválido. Use formato: (11) 99999-9999
+                {formData.telefone && !validarTelefone(formData.telefone) && (
+                  <p className="text-red-400 text-xs mt-1 font-montserrat">
+                    Número inválido. Use formato: (11) 99999-9999
                   </p>
-                }
+                )}
               </div>
             </div>
 
             {/* Descrição */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <FileText className="w-6 h-6 mr-3 text-primary-red" />
+                <FileText className="w-6 h-6 mr-3 text-red-text" />
                 DESCRIÇÃO
               </h2>
 
@@ -751,31 +834,31 @@ const AnuncieSeuCarro = () => {
                   placeholder="Descreva as características, modificações, estado de conservação..."
                   rows={6}
                   className="w-full p-3 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat focus:border-primary-red focus:outline-none resize-none"
-                  required />
-
+                  required
+                />
               </div>
             </div>
 
             {/* Upload de Imagens */}
             <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
               <h2 className="font-bebas text-2xl text-white mb-6 flex items-center">
-                <Camera className="w-6 h-6 mr-3 text-primary-red" />
+                <Camera className="w-6 h-6 mr-3 text-red-text" />
                 FOTOS DO VEÍCULO
               </h2>
 
               <div
                 className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                dragOver ?
-                'border-primary-red bg-primary-red/10' :
-                'border-gray-600 hover:border-gray-500'}`
-                }
+                  dragOver
+                    ? 'border-primary-red bg-primary-red/10'
+                    : 'border-gray-600 hover:border-gray-500'
+                }`}
                 onDrop={handleDrop}
                 onDragOver={(e) => {
                   e.preventDefault();
                   setDragOver(true);
                 }}
-                onDragLeave={() => setDragOver(false)}>
-
+                onDragLeave={() => setDragOver(false)}
+              >
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-400 font-montserrat mb-4">
                   Arraste as imagens aqui ou clique para selecionar
@@ -788,8 +871,8 @@ const AnuncieSeuCarro = () => {
                     multiple
                     accept="image/*"
                     onChange={handleImageUpload}
-                    className="hidden" />
-
+                    className="hidden"
+                  />
                 </label>
                 <p className="text-gray-500 text-sm mt-2">
                   Máximo 6 imagens - JPG, PNG ou WebP
@@ -797,31 +880,31 @@ const AnuncieSeuCarro = () => {
               </div>
 
               {/* Preview das Imagens */}
-              {formData.images.length > 0 &&
-              <div className="mt-6">
+              {formData.images.length > 0 && (
+                <div className="mt-6">
                   <h3 className="text-white font-montserrat font-600 mb-4">
                     Imagens Selecionadas ({formData.images.length}/6)
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {formData.images.map((image, index) =>
-                  <div key={index} className="relative group">
+                    {formData.images.map((image, index) => (
+                      <div key={index} className="relative group">
                         <img
-                      src={image}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg" />
-
+                          src={image}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg"
+                        />
                         <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
-                  )}
+                    ))}
                   </div>
                 </div>
-              }
+              )}
             </div>
 
             {/* Botão de Envio com Badge de Confiança */}
@@ -839,8 +922,11 @@ const AnuncieSeuCarro = () => {
                       Processo de Aprovação
                     </h3>
                     <p className="text-gray-300 font-montserrat text-sm">
-                      Seu anúncio será enviado para análise da nossa equipe. Você receberá uma notificação 
-                      quando for aprovado ou se precisar de alguma correção.
+                      Seu anúncio será enviado para análise da nossa equipe. 
+                      {user ? 
+                        ' Você receberá uma notificação quando for aprovado ou se precisar de alguma correção.' :
+                        ' Você receberá um e-mail quando for aprovado ou se precisar de alguma correção.'
+                      }
                     </p>
                   </div>
                 </div>
@@ -849,26 +935,35 @@ const AnuncieSeuCarro = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-primary-red hover:bg-turbo-dark disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bebas text-xl py-4 rounded-lg transition-colors flex items-center justify-center space-x-3">
-
-                {isLoading ?
-                <>
+                className="w-full bg-primary-red hover:bg-turbo-dark disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bebas text-xl py-4 rounded-lg transition-colors flex items-center justify-center space-x-3"
+              >
+                {isLoading ? (
+                  <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                     <span>ENVIANDO...</span>
-                  </> :
-
-                <>
+                  </>
+                ) : (
+                  <>
                     <Upload className="w-6 h-6" />
                     <span>ENVIAR PARA APROVAÇÃO</span>
                   </>
-                }
+                )}
               </button>
+
+              {/* Mensagem de incentivo para visitantes */}
+              {!user && (
+                <div className="mt-4 text-center">
+                  <p className="text-gray-400 font-montserrat text-sm">
+                    <Link to="/cadastro" className="text-red-text underline">Crie uma conta</Link> para gerenciar seus anúncios e receber mais recursos!
+                  </p>
+                </div>
+              )}
             </div>
           </form>
         </motion.div>
       </div>
-    </div>);
-
+    </div>
+  );
 };
 
 export default AnuncieSeuCarro;

@@ -1,118 +1,83 @@
+import { Link } from 'react-router-dom';
+import { MessageCircleDashed as MessageCircle, Instagram, Mail } from 'lucide-react';
+import Logo from './Logo';
 
-import React from 'react';
-import { MessageCircleDashed as MessageCircle, Instagram, Mail, Car } from 'lucide-react';
-import { motion } from 'framer-motion';
+const categorias = [
+  { id: 'turbo', label: 'Turbo' },
+  { id: 'aspirado', label: 'Aspirado' },
+  { id: 'original', label: 'Original' },
+  { id: 'pista', label: 'Pista' },
+] as const;
 
 const Footer = () => {
   return (
-    <footer className="bg-primary-gray border-t border-primary-red/20">
+    <footer className="bg-surface border-t border-line">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Logo e Descrição */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="space-y-4">
-
-            <div className="flex items-center space-x-2">
-              <Car className="w-8 h-8 text-primary-red" />
-              <span className="font-bebas text-2xl text-white">
-                RaceMarket<span className="text-primary-red">BR</span>
-              </span>
-            </div>
-            <p className="text-gray-400 font-montserrat">Classificado de carros turbos, aspirados, originais e preparados para pista do Brasil. 
-              Encontre seu carro dos sonhos ou anuncie o seu!
-
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {/* Marca */}
+          <div className="space-y-4">
+            <Logo height={28} />
+            <p className="text-ink-muted font-sans max-w-sm">
+              O classificado de quem vive de pista, preparação e originalidade.
             </p>
-          </motion.div>
+            <span className="rm-faixa" aria-hidden="true" />
+          </div>
 
           {/* Contato */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="space-y-4">
-
-            <h3 className="font-bebas text-xl text-white">Contato</h3>
-            <div className="space-y-3">
+          <div className="space-y-4">
+            <h3 className="font-display text-2xl text-ink">CONTATO</h3>
+            <div className="space-y-3 text-ink-muted">
               <a
                 href="https://wa.me/5511999999999"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-3 text-gray-400 hover:text-primary-red transition-colors group">
-
-                <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="font-montserrat">(00) 0000-0000</span>
+                className="flex items-center gap-3 hover:text-red-text transition-colors"
+              >
+                <MessageCircle className="w-5 h-5" />
+                <span>(00) 0000-0000</span>
               </a>
               <a
                 href="https://instagram.com/racemarketbr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-3 text-gray-400 hover:text-primary-red transition-colors group">
-
-                <Instagram className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="font-montserrat">@racemarketbr</span>
+                className="flex items-center gap-3 hover:text-red-text transition-colors"
+              >
+                <Instagram className="w-5 h-5" />
+                <span>@racemarketbr</span>
               </a>
-              <a
-                href="mailto:contato@racemarketbr.com.br"
-                className="flex items-center space-x-3 text-gray-400 hover:text-primary-red transition-colors group">
-
-                <Mail className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <span className="font-montserrat">contato@racemarketbr.com.br</span>
-              </a>
+              <p className="flex items-center gap-3 select-all">
+                <Mail className="w-5 h-5" />
+                <span>contato@racemarketbr.com.br</span>
+              </p>
             </div>
-          </motion.div>
+          </div>
 
           {/* Categorias */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="space-y-4">
-
-            <h3 className="font-bebas text-xl text-white">Categorias</h3>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gradient-turbo rounded-full"></div>
-                <span className="font-montserrat text-gray-400">Carros Turbos</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gradient-aspirado rounded-full"></div>
-                <span className="font-montserrat text-gray-400">Carros Aspirados</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gradient-original rounded-full"></div>
-                <span className="font-montserrat text-gray-400">Carros Originais</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gradient-to-r from-orange-500 to-red-600 rounded-full"></div>
-                <span className="font-montserrat text-gray-400">Carros de Pista</span>
-              </div>
+          <div className="space-y-4">
+            <h3 className="font-display text-2xl text-ink">CATEGORIAS</h3>
+            <div className="flex flex-wrap gap-2">
+              {categorias.map((c) => (
+                <Link key={c.id} to="/anuncios" className={`rm-badge rm-badge--${c.id} hover:opacity-90`}>
+                  {c.label}
+                </Link>
+              ))}
             </div>
-          </motion.div>
+            <div className="flex flex-col gap-1 text-sm text-ink-muted pt-2">
+              <Link to="/termos" className="hover:text-ink">Termos de uso</Link>
+              <Link to="/privacidade" className="hover:text-ink">Política de privacidade</Link>
+            </div>
+          </div>
         </div>
 
-        {/* Aviso Legal */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 pt-8 border-t border-primary-red/20 text-center">
-
-          <p className="text-gray-500 font-montserrat text-sm">
-            © 2024 RaceMarketBR. Todos os direitos reservados. 
-            <span className="block mt-2">
-              A RaceMarketBR apenas divulga os anúncios e não intermedia as vendas.
-            </span>
+        <div className="mt-10 pt-8 border-t border-line text-center">
+          <p className="text-ink-muted font-sans text-sm">
+            © {new Date().getFullYear()} RaceMarketBR. Todos os direitos reservados.
+            <span className="block mt-2">A RaceMarketBR apenas divulga os anúncios e não intermedia as vendas.</span>
           </p>
-        </motion.div>
+        </div>
       </div>
-    </footer>);
-
+    </footer>
+  );
 };
 
 export default Footer;

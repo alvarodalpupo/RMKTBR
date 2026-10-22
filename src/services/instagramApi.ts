@@ -74,10 +74,9 @@ export const fetchInstagramPosts = async (): Promise<InstagramPost[]> => {
   }
 
   try {
-    // Se não há token, usar dados mockados
+    // Sem token: exemplos só em desenvolvimento; em produção o feed fica oculto
     if (!ACCESS_TOKEN || ACCESS_TOKEN === 'your_access_token_here') {
-      console.log('🔧 Usando dados mockados do Instagram (desenvolvimento)')
-      const posts = mockInstagramPosts
+      const posts = import.meta.env.DEV ? mockInstagramPosts : []
       cachedData = { posts, timestamp: Date.now() }
       return posts
     }
@@ -105,8 +104,8 @@ export const fetchInstagramPosts = async (): Promise<InstagramPost[]> => {
   } catch (error) {
     console.error('❌ Erro ao buscar posts do Instagram:', error)
     
-    // Fallback para dados mockados em caso de erro
-    console.log('🔄 Usando dados mockados como fallback')
+    // Em produção não mostramos posts falsos: o erro é exibido pelo componente
+    if (!import.meta.env.DEV) throw error
     const posts = mockInstagramPosts
     cachedData = { posts, timestamp: Date.now() }
     return posts

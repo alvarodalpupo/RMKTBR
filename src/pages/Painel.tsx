@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {Car, BarChart3, Bell, Plus, Edit3, Trash2, Eye, MessageCircleDashed as MessageCircle, Clock, CheckCircle, X, AlertTriangle, Star, Calendar, MapPin, Phone, Mail, User, Settings, Shield, Camera, Upload, Save, Smartphone, Monitor, Tablet, LogOut, Key, Verified, AlertCircle} from 'lucide-react'
+import { Car, BarChart3, Bell, Plus, Edit3, Trash2, Eye, MessageCircleDashed as MessageCircle, Clock, CheckCircle, X, Calendar, Mail, User, Shield, Camera, Save, Smartphone, Monitor, Tablet, LogOut, Key, Verified, AlertCircle } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useUserProfile } from '../hooks/useUserProfile'
 import { useUserSessions } from '../hooks/useUserSessions'
@@ -13,7 +13,7 @@ import toast from 'react-hot-toast'
 
 const Painel = () => {
   const { user, isAuthenticated, signOut } = useAuth()
-  const { profile, loading: profileLoading, updating, updateProfile, uploadAvatar, removeAvatar } = useUserProfile()
+  const { profile, updating, updateProfile, uploadAvatar, removeAvatar } = useUserProfile()
   const { sessions, loading: sessionsLoading, endSession, endAllOtherSessions } = useUserSessions()
   const { listings, deleteListing, updateListing } = useListingsStore()
   const { notifications, markAsRead, markAllAsRead, deleteNotification } = useNotificationsStore()
@@ -30,8 +30,8 @@ const Painel = () => {
   const [previewAvatar, setPreviewAvatar] = useState<string>('')
 
   // Filtrar dados do usuário logado
-  const userListings = listings.filter(listing => listing.user_id === user?.userId)
-  const userNotifications = notifications.filter(notification => notification.user_id === user?.userId)
+  const userListings = listings.filter(listing => listing.user_id === user?.id)
+  const userNotifications = notifications.filter(notification => notification.user_id === user?.id)
   const unreadNotifications = userNotifications.filter(n => !n.read)
   const unreadCount = unreadNotifications.length
 
@@ -146,9 +146,9 @@ const Painel = () => {
     }
   }
 
-  // Manipular destaque de anúncio
-  const handleToggleDestaque = async (id: string, currentDestaque: boolean) => {
-    await updateListing(id, { destaque: !currentDestaque })
+  // Dono avisa que vendeu: sai da vitrine e vai para "Vendidos"
+  const handleMarcarVendido = async (id: string) => {
+    if (await updateListing(id, { status: 'vendido' })) toast.success('Parabéns pela venda! O anúncio foi para Vendidos.')
   }
 
   // Funções utilitárias
@@ -236,7 +236,7 @@ const Painel = () => {
                   MEU PAINEL
                 </h1>
                 <p className="text-gray-400 font-montserrat">
-                  Bem-vindo, <span className="text-primary-red font-600">{user?.userName}</span>
+                  Bem-vindo, <span className="text-red-text font-600">{user?.nome}</span>
                 </p>
               </div>
             </div>
@@ -301,7 +301,7 @@ const Painel = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <Car className="w-8 h-8 text-primary-red" />
+                    <Car className="w-8 h-8 text-red-text" />
                     <span className="text-2xl font-bebas text-white">{stats.total_anuncios}</span>
                   </div>
                   <h3 className="font-montserrat font-600 text-white">Total Anúncios</h3>
@@ -463,7 +463,7 @@ const Painel = () => {
                           </label>
                           <input
                             type="text"
-                            value={user?.userName || ''}
+                            value={user?.nome || ''}
                             disabled
                             className="w-full px-3 py-2 bg-primary-black border border-gray-800 rounded-lg text-gray-400 font-montserrat cursor-not-allowed"
                           />
@@ -569,7 +569,7 @@ const Painel = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <h4 className="font-montserrat font-600 text-white mb-2">Nome</h4>
-                          <p className="text-gray-300">{user?.userName || 'Não informado'}</p>
+                          <p className="text-gray-300">{user?.nome || 'Não informado'}</p>
                         </div>
 
                         <div>
@@ -883,7 +883,7 @@ const Painel = () => {
                               )}
                             </div>
                             <p className="text-gray-400 mb-2">{listing.cidade} - {listing.uf}</p>
-                            <span className="font-bebas text-xl text-primary-red">
+                            <span className="font-bebas text-xl text-red-text">
                               {listing.preco}
                             </span>
                             <div className="mt-2">
@@ -920,14 +920,10 @@ const Painel = () => {
                             </Link>
                             {listing.status === 'publicado' && (
                               <button
-                                onClick={() => handleToggleDestaque(listing.id, listing.destaque)}
-                                className={`px-4 py-2 rounded-lg font-montserrat font-600 transition-colors ${
-                                  listing.destaque
-                                    ? 'bg-primary-red/20 text-primary-red hover:bg-primary-red/30'
-                                    : 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
-                                }`}
+                                onClick={() => handleMarcarVendido(listing.id)}
+                                className="px-4 py-2 rounded-lg font-montserrat font-600 transition-colors bg-success/15 text-success hover:bg-success/25"
                               >
-                                {listing.destaque ? 'Remover Destaque' : 'Destacar'}
+                                Marquei como vendido
                               </button>
                             )}
                             <button
@@ -977,7 +973,7 @@ const Painel = () => {
                 <h2 className="font-bebas text-3xl text-white">NOTIFICAÇÕES</h2>
                 {unreadCount > 0 && (
                   <button
-                    onClick={() => markAllAsRead(user?.userId || '')}
+                    onClick={() => markAllAsRead(user?.id || '')}
                     className="bg-primary-red hover:bg-red-700 text-white font-montserrat font-600 px-4 py-2 rounded-lg transition-colors"
                   >
                     Marcar todas como lidas

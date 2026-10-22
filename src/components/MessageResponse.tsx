@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {X, Send, FileText, Eye, Save, Clock, User, Mail, Phone, MessageCircleDashed as MessageCircle, Copy, Sparkles} from 'lucide-react'
+import { X, Send, Eye, Clock, User, Mail, Phone, MessageCircleDashed as MessageCircle, Copy, Sparkles } from 'lucide-react'
 import { ContactMessage } from '../types/contactMessage'
 
 interface MessageResponseProps {
@@ -66,7 +66,7 @@ const MessageResponse: React.FC<MessageResponseProps> = ({
         hour: '2-digit',
         minute: '2-digit'
       })
-    } catch (error) {
+    } catch {
       return 'Data inválida'
     }
   }, [])
@@ -108,7 +108,7 @@ const MessageResponse: React.FC<MessageResponseProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-800">
               <div className="flex items-center space-x-3">
-                <MessageCircle className="w-6 h-6 text-primary-red" />
+                <MessageCircle className="w-6 h-6 text-red-text" />
                 <h3 className="font-bebas text-xl text-white">RESPONDER MENSAGEM</h3>
               </div>
               <button
@@ -154,7 +154,7 @@ const MessageResponse: React.FC<MessageResponseProps> = ({
                           <Phone className="w-4 h-4 text-gray-400" />
                           <span className="text-gray-300 font-montserrat text-sm">{message.phone}</span>
                           <button
-                            onClick={() => copyToClipboard(message.phone)}
+                            onClick={() => copyToClipboard(message.phone ?? '')}
                             className="text-gray-500 hover:text-gray-300 transition-colors"
                           >
                             <Copy className="w-3 h-3" />
@@ -176,7 +176,7 @@ const MessageResponse: React.FC<MessageResponseProps> = ({
                     <h4 className="font-montserrat font-bold text-white mb-3">Mensagem Original</h4>
                     <div className="bg-primary-black border border-gray-800 rounded-lg p-4">
                       <div className="mb-2">
-                        <span className="text-primary-red font-montserrat font-600 text-sm">
+                        <span className="text-red-text font-montserrat font-600 text-sm">
                           {getSubjectLabel(message.subject)}
                         </span>
                       </div>

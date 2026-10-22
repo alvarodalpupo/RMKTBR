@@ -86,37 +86,11 @@ const TrustBadge: React.FC<TrustBadgeProps> = ({
       }
 
       {/* Main Badge */}
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      {/* Sparkle Effect */}
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
+      <div
+        className={`relative flex items-center space-x-2 bg-gradient-to-r ${config.bgColor} border ${config.borderColor} rounded-full ${sizeConfig.container} ${sizeConfig.glow} ${config.glowColor}`}>
+        <IconComponent className={`${sizeConfig.icon} text-white`} />
+        <span className={`font-montserrat font-600 text-white ${sizeConfig.text}`}>{config.text}</span>
+      </div>
     </motion.div>);
 
 };

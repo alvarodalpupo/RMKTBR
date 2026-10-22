@@ -1,8 +1,7 @@
 
-import React from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
-import { MessageCircleDashed as MessageCircle, Instagram, Mail, Phone, Send, MapPin, CheckCircle, Clock, Shield, Zap } from 'lucide-react';
+import { MessageCircleDashed as MessageCircle, Instagram, Mail, Send, MapPin, Clock, Shield, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useContactMessagesStore } from '../stores/contactMessagesStore';
 
@@ -20,21 +19,18 @@ const Contato = () => {
 
   const onSubmit = async (data: ContactForm) => {
     try {
-      // Adicionar mensagem ao store
-      addMessage({
+      const ok = await addMessage({
         name: data.name,
         email: data.email,
         phone: data.phone,
         subject: data.subject,
         message: data.message
       });
+      if (!ok) return;
 
-      // Simular envio de email (aqui seria integração real)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success('Mensagem enviada com sucesso! Nossa equipe retornará em até 24 horas.');
+      toast.success('Mensagem enviada! Nossa equipe responde em até 24 horas.');
       reset();
-    } catch (error) {
+    } catch {
       toast.error('Erro ao enviar mensagem. Tente novamente.');
     }
   };
@@ -102,7 +98,7 @@ const Contato = () => {
             animate={{ opacity: 1, y: 0 }}>
 
             <h1 className="font-bebas text-5xl md:text-6xl text-white mb-4">
-              ENTRE EM <span className="text-primary-red">CONTATO</span>
+              ENTRE EM <span className="text-red-text">CONTATO</span>
             </h1>
             <p className="font-montserrat text-gray-400 text-lg max-w-2xl mx-auto">
               Tire suas dúvidas, envie sugestões ou solicite informações sobre nossos serviços
@@ -142,7 +138,7 @@ const Contato = () => {
                     transition={{ delay: 0.3 + index * 0.1 }}
                     className="flex items-center space-x-3 p-3 bg-primary-gray/50 rounded-lg border border-gray-800">
 
-                    <IconComponent className="w-5 h-5 text-primary-red" />
+                    <IconComponent className="w-5 h-5 text-red-text" />
                     <div>
                       <h4 className="font-montserrat font-600 text-white text-sm">
                         {item.title}
@@ -360,7 +356,7 @@ const Contato = () => {
 
           <div className="text-center mb-12">
             <h2 className="font-bebas text-4xl text-white mb-4">
-              SIGA NO <span className="text-primary-red">INSTAGRAM</span>
+              SIGA NO <span className="text-red-text">INSTAGRAM</span>
             </h2>
             <p className="text-gray-400 font-montserrat">
               Acompanhe os lançamentos e novidades do mundo automotivo
@@ -383,46 +379,6 @@ const Contato = () => {
 
               Seguir no Instagram
             </a>
-          </div>
-        </motion.section>
-
-        {/* Success Stats */}
-        <motion.section
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-          className="mt-16">
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-
-
-
-
-
-
-
-
-            
-            
-
-
-
-
-
-
-
-
-            
-            
-
-
-
-
-
-
-
-
           </div>
         </motion.section>
       </div>

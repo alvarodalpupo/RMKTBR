@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Filter, TrendingUp, Zap, Wind, Trophy, Settings, CheckCircle, Calendar, Award } from 'lucide-react';
+import { Search, Filter, TrendingUp, Zap, Wind, Trophy, Settings, CheckCircle, Calendar, Gauge } from 'lucide-react';
 import CarCard from '../components/CarCard';
 import InstagramFeed from '../components/InstagramFeed';
 import { useListingsStore } from '../stores/listingsStore';
@@ -37,7 +37,7 @@ const Home = () => {
   // Função para lidar com Enter na busca
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearch(e as any);
+      handleSearch(e);
     }
   };
 
@@ -91,81 +91,70 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-primary-black">
       {/* Hero Section */}
-      <section className="relative pt-20 pb-16 overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-black via-primary-gray to-primary-black"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(239,68,68,0.1),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(59,130,246,0.05),transparent_50%)]"></div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto">
+      <section className="relative pt-16 overflow-hidden border-b border-line">
+        {/* Grafismo da marca: faixas de largada nas cores das categorias + bandeira quadriculada */}
+        <div className="flex h-3 md:h-4" aria-hidden="true">
+          <div className="bg-red w-[42%]" />
+          <div className="bg-pista-primary w-[12%]" />
+          <div className="bg-aspirado-primary w-[7%]" />
+          <div className="bg-original-primary w-[5%]" />
+          <div className="flex-1 bg-[repeating-linear-gradient(90deg,rgb(var(--ink))_0_12px,transparent_12px_24px)] opacity-90" />
+        </div>
 
-            <h1 className="font-bebas text-6xl md:text-8xl text-white mb-6 leading-tight">
-              RACE<span className="text-primary-red">MARKET</span>BR
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 font-montserrat mb-8 leading-relaxed">
-              O maior marketplace de veículos esportivos do Brasil
+        <div className="container mx-auto px-4 py-16 md:py-24">
+          <div className="max-w-4xl">
+            <p className="font-sans text-sm font-600 uppercase tracking-[2px] text-red-text mb-4">
+              Turbo · Aspirado · Original · Pista
             </p>
-            
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-12">
-              <form onSubmit={handleSearch} className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-6 h-6" />
+            <h1 className="font-display text-6xl sm:text-7xl md:text-hero text-ink">
+              ACELERE SUA VENDA.
+              <span className="block text-red">ENCONTRE QUEM ENTENDE.</span>
+            </h1>
+            <p className="text-lead text-ink-muted font-sans mt-6 max-w-2xl">
+              O classificado de quem vive de pista, preparação e originalidade. Ficha técnica completa,
+              potência e torque à vista, comprador certo.
+            </p>
+
+            {/* Busca */}
+            <form onSubmit={handleSearch} className="mt-10 max-w-2xl flex flex-col sm:flex-row gap-3" role="search">
+              <label htmlFor="busca-home" className="sr-only">Buscar por modelo ou marca</label>
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted w-5 h-5" />
                 <input
-                  type="text"
-                  placeholder="Buscar por modelo ou marca do veículo..."
+                  id="busca-home"
+                  type="search"
+                  placeholder="Civic, Golf GTI, WRX, M3, 911..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  className="w-full pl-14 pr-6 py-4 bg-primary-gray border border-gray-800 rounded-xl text-white font-montserrat text-lg focus:border-primary-red focus:outline-none transition-colors" />
+                  className="w-full pl-12 pr-4 py-4 bg-surface border border-line-strong rounded-md text-ink font-sans text-base placeholder:text-ink-muted focus:border-red focus:outline-none transition-colors"
+                />
+              </div>
+              <button type="submit" className="rm-btn rm-btn--primary">
+                BUSCAR
+              </button>
+            </form>
 
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary-red hover:bg-turbo-dark text-white px-6 py-2 rounded-lg transition-colors font-montserrat font-600">
-
-                  Buscar
-                </button>
-              </form>
-              <p className="text-gray-400 text-sm mt-2 font-montserrat">
-                Ex: Civic, Golf, WRX, M3, 911...
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                to="/anuncios"
-                className="bg-primary-red hover:bg-turbo-dark text-white font-bebas text-xl px-8 py-4 rounded-lg transition-colors flex items-center space-x-3 group">
-
-                <Search className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                <span>VER ANÚNCIOS</span>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/anuncios" className="rm-btn rm-btn--outline rm-btn--sm">
+                <Gauge className="w-5 h-5" />
+                VER ANÚNCIOS
               </Link>
-              <Link
-                to="/anuncie-seu-carro"
-                className="border-2 border-primary-red text-primary-red hover:bg-primary-red hover:text-white font-bebas text-xl px-8 py-4 rounded-lg transition-colors flex items-center space-x-3 group">
-
-                <TrendingUp className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                <span>ANUNCIAR GRÁTIS</span>
+              <Link to="/anuncie-seu-carro" className="rm-btn rm-btn--outline rm-btn--sm">
+                <TrendingUp className="w-5 h-5" />
+                ANUNCIAR GRÁTIS
               </Link>
             </div>
-          </motion.div>
+          </div>
         </div>
-
-        {/* Floating Elements */}
-        <div className="absolute top-1/4 left-10 w-20 h-20 bg-primary-red/10 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse delay-1000"></div>
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-gradient-to-b from-primary-black to-primary-gray">
+      <section className="py-20 bg-bg">
         <div className="container mx-auto px-4">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 30 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12">
 
@@ -181,8 +170,8 @@ const Home = () => {
             {categorias.map((categoria, index) =>
             <motion.div
               key={categoria.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ y: 30 }}
+              whileInView={{ y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               className="group">
@@ -224,8 +213,8 @@ const Home = () => {
       <section className="py-16 bg-primary-gray">
           <div className="container mx-auto px-4">
             <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 30 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12">
 
@@ -246,8 +235,8 @@ const Home = () => {
                 {filteredListings.map((listing, index) =>
             <motion.div
               key={listing.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ y: 30 }}
+              whileInView={{ y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}>
 
@@ -278,8 +267,8 @@ const Home = () => {
       <section className="py-16 bg-gradient-to-b from-primary-gray to-primary-black">
           <div className="container mx-auto px-4">
             <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ y: 30 }}
+            whileInView={{ y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12">
 
@@ -298,8 +287,8 @@ const Home = () => {
               {recentSoldListings.map((listing, index) =>
             <motion.div
               key={listing.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ y: 30 }}
+              whileInView={{ y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
               className="relative group">
@@ -325,39 +314,6 @@ const Home = () => {
             )}
             </div>
 
-            {/* Success Stats */}
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             <div className="text-center">
               <Link
               to="/vendidos"
@@ -370,40 +326,6 @@ const Home = () => {
           </div>
         </section>
       }
-
-      {/* Stats Section */}
-      
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </div>);
 
 };

@@ -1,4 +1,9 @@
 import { create } from 'zustand'
+import toast from 'react-hot-toast'
+import { extrairValorNumerico } from '../utils/formatters'
+import { supabase, mensagemDeErro, enviarSemEsperar } from '../lib/supabase'
+import { enviarFotos, apagarFotos } from '../lib/fotos'
+import { useAuthStore } from './authStore'
 
 export interface Listing {
   id: string
@@ -15,11 +20,11 @@ export interface Listing {
   views: number
   clicks_whatsapp: number
   created_at: string
-  user_id: string
+  user_id: string | null
   power_whp?: number
   torque_kgfm?: number
   tracao?: 'dianteira' | 'traseira' | 'integral'
-  status: 'ativo' | 'em_revisao' | 'rejeitado' | 'publicado' | 'arquivado' | 'vendido'  // Novo status
+  status: 'em_revisao' | 'rejeitado' | 'publicado' | 'arquivado' | 'vendido'
   aceita_troca: boolean
   sold_at?: string  // Data da venda
   admin_notes?: string  // Observações do admin
@@ -40,35 +45,41 @@ export interface ListingFilters {
   showSoldOnly?: boolean  // Novo filtro específico para vendidos
 }
 
+/** Dados do formulário "Anuncie seu carro". */
+export type NovoAnuncio = Omit<Listing, 'id' | 'views' | 'clicks_whatsapp' | 'created_at' | 'status' | 'user_id'> & {
+  user_id?: string
+  /** Só para quem anuncia sem conta: fica guardado em separado, visível só ao admin. */
+  nome_anunciante?: string
+  email?: string
+}
+
 interface ListingsStore {
   listings: Listing[]
   filteredListings: Listing[]
   filters: ListingFilters
   isLoading: boolean
+  /** Erro ao carregar do banco (mostrado na tela). */
+  loadError: string | null
   showNoResultsMessage: boolean
   searchedModel: string
-  selectedCategory: string
-  searchTerm: string
-  selectedCity: string
-  priceRange: string
+  /** Busca os anúncios no banco (sem efeito no modo demonstração). */
+  fetchListings: () => Promise<void>
   setListings: (listings: Listing[]) => void
   setFilters: (filters: Partial<ListingFilters>) => void
   clearFilters: () => void
-  addListing: (listing: Omit<Listing, 'id' | 'views' | 'clicks_whatsapp' | 'created_at'>) => void
-  createListing: (listing: Omit<Listing, 'id' | 'views' | 'clicks_whatsapp' | 'created_at' | 'status'>) => Promise<boolean>
+  createListing: (listing: NovoAnuncio) => Promise<boolean>
   incrementViews: (id: string) => void
   incrementWhatsAppClicks: (id: string) => void
-  deleteListing: (id: string) => void
+  deleteListing: (id: string) => Promise<boolean>
   applyFilters: () => void
   searchByModel: (model: string) => void
   clearModelSearch: () => void
-  // Novas funções para administração
   approveListing: (id: string, adminNotes?: string) => Promise<boolean>
   rejectListing: (id: string, reason: string) => Promise<boolean>
   updateListing: (id: string, updates: Partial<Listing>) => Promise<boolean>
-  markAsSold: (id: string, adminNotes?: string) => Promise<boolean>  // Nova função
-  getSoldListings: () => Listing[]  // Nova função para filtrar vendidos
-  getListingsByStatus: (status: string) => Listing[]  // Função genérica por status
+  markAsSold: (id: string, adminNotes?: string) => Promise<boolean>
+  getSoldListings: () => Listing[]
+  getListingsByStatus: (status: string) => Listing[]
 }
 
 // Dados de exemplo atualizados com mais veículos vendidos
@@ -344,7 +355,7 @@ const applyFiltersToListings = (listings: Listing[], filters: ListingFilters): L
       }
     }
     // Se showSoldOnly é false ou undefined, EXCLUIR vendidos automaticamente
-    else if (filters.showSoldOnly !== true) {
+    else {
       if (listing.status === 'vendido') {
         return false
       }
@@ -399,7 +410,7 @@ const applyFiltersToListings = (listings: Listing[], filters: ListingFilters): L
 
     // Filtros por preço customizável
     if (filters.minPrice || filters.maxPrice) {
-      const priceNumber = parseInt(listing.preco.replace(/\D/g, ''))
+      const priceNumber = extrairValorNumerico(listing.preco)
       if (filters.minPrice && priceNumber < filters.minPrice) {
         return false
       }
@@ -410,7 +421,7 @@ const applyFiltersToListings = (listings: Listing[], filters: ListingFilters): L
 
     // Filtro por faixa de preço
     if (filters.price && filters.price !== 'todos') {
-      const priceNumber = parseInt(listing.preco.replace(/\D/g, ''))
+      const priceNumber = extrairValorNumerico(listing.preco)
       switch (filters.price) {
         case 'até R$ 100.000':
           if (priceNumber > 100000) return false
@@ -431,329 +442,279 @@ const applyFiltersToListings = (listings: Listing[], filters: ListingFilters): L
   })
 }
 
-export const useListingsStore = create<ListingsStore>((set, get) => ({
-  listings: mockListings,
-  // FILTRO PADRÃO: Excluir vendidos automaticamente
-  filteredListings: applyFiltersToListings(mockListings, { showSoldOnly: false }),
-  filters: {
-    category: 'todos',
-    search: '',
-    city: 'todas',
-    price: 'todos',
-    aceita_troca: null,
-    modelSearch: '',
-    status: 'todos',
-    showSoldOnly: false // Padrão: não mostrar vendidos
-  },
-  isLoading: false,
-  showNoResultsMessage: false,
-  searchedModel: '',
-  
-  // Getters seguros
-  get selectedCategory() {
-    return get().filters?.category || 'todos'
-  },
-  get searchTerm() {
-    return get().filters?.search || ''
-  },
-  get selectedCity() {
-    return get().filters?.city || 'todas'
-  },
-  get priceRange() {
-    return get().filters?.price || 'todos'
-  },
-  
-  setListings: (listings) => {
-    set({ listings: listings || [] })
+// ---------------------------------------------------------------------
+// Banco (Supabase) <-> formato usado nas telas
+// ---------------------------------------------------------------------
+type ListingRow = {
+  id: string
+  user_id: string | null
+  titulo: string
+  categoria: Listing['categoria']
+  ano: number
+  preco: number | string
+  cidade: string
+  uf: string
+  descricao: string | null
+  telefone: string | null
+  destaque: boolean
+  views: number
+  clicks_whatsapp: number
+  power_whp: number | string | null
+  torque_kgfm: number | string | null
+  tracao: Listing['tracao'] | null
+  status: Listing['status']
+  aceita_troca: boolean
+  images: string[]
+  sold_at: string | null
+  admin_notes: string | null
+  rejection_reason: string | null
+  created_at: string
+}
+
+const precoFormatado = (valor: number) =>
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor)
+
+const numeroOuUndefined = (v: number | string | null) => (v === null || v === '' ? undefined : Number(v))
+
+const deLinha = (r: ListingRow): Listing => ({
+  id: r.id,
+  user_id: r.user_id,
+  titulo: r.titulo,
+  categoria: r.categoria,
+  ano: r.ano,
+  // Vendido: preço e telefone saem da vitrine
+  preco: r.status === 'vendido' ? 'VENDIDO' : precoFormatado(Number(r.preco)),
+  cidade: r.cidade,
+  uf: r.uf,
+  descricao: r.descricao ?? undefined,
+  telefone: r.status === 'vendido' ? '' : r.telefone ?? '',
+  destaque: r.destaque,
+  views: r.views,
+  clicks_whatsapp: r.clicks_whatsapp,
+  power_whp: numeroOuUndefined(r.power_whp),
+  torque_kgfm: numeroOuUndefined(r.torque_kgfm),
+  tracao: r.tracao ?? undefined,
+  status: r.status,
+  aceita_troca: r.aceita_troca,
+  images: r.images ?? [],
+  sold_at: r.sold_at ?? undefined,
+  admin_notes: r.admin_notes ?? undefined,
+  rejection_reason: r.rejection_reason ?? undefined,
+  created_at: r.created_at,
+})
+
+/** Campos do formato da tela que viram colunas do banco. */
+const paraLinha = (l: Partial<Listing>): Partial<ListingRow> => {
+  const row: Partial<ListingRow> = {}
+  const copiar = [
+    'titulo', 'categoria', 'ano', 'cidade', 'uf', 'destaque', 'status', 'aceita_troca',
+    'images', 'sold_at', 'admin_notes', 'rejection_reason',
+  ] as const
+  for (const k of copiar) if (l[k] !== undefined) (row as Record<string, unknown>)[k] = l[k]
+  if (l.preco !== undefined && l.preco !== 'VENDIDO') row.preco = extrairValorNumerico(l.preco)
+  if (l.descricao !== undefined) row.descricao = l.descricao || null
+  if (l.telefone !== undefined && l.telefone !== '') row.telefone = l.telefone.replace(/\D/g, '')
+  if ('power_whp' in l) row.power_whp = l.power_whp ?? null
+  if ('torque_kgfm' in l) row.torque_kgfm = l.torque_kgfm ?? null
+  if ('tracao' in l) row.tracao = l.tracao ?? null
+  return row
+}
+
+const filtrosPadrao: ListingFilters = {
+  category: 'todos',
+  search: '',
+  city: 'todas',
+  price: 'todos',
+  aceita_troca: null,
+  modelSearch: '',
+  status: 'todos',
+  showSoldOnly: false, // vendidos ficam na página própria
+}
+
+const listaInicial = supabase ? [] : mockListings
+
+export const useListingsStore = create<ListingsStore>((set, get) => {
+  /** Troca a lista e recalcula o que está filtrado na tela. */
+  const atualizar = (listings: Listing[]) => {
     const { filters } = get()
-    const filteredListings = applyFiltersToListings(listings || [], filters || {})
-    set({ filteredListings })
-  },
-  
-  setFilters: (newFilters) => {
-    const currentFilters = get().filters || {}
-    const filters = { ...currentFilters, ...newFilters }
-    set({ filters })
-    
-    const { listings } = get()
-    const filteredListings = applyFiltersToListings(listings || [], filters)
-    set({ filteredListings })
-    
-    if (filters.modelSearch && filteredListings.length === 0) {
-      set({ showNoResultsMessage: true, searchedModel: filters.modelSearch })
-    } else {
-      set({ showNoResultsMessage: false, searchedModel: '' })
-    }
-  },
-  
-  clearFilters: () => {
-    const defaultFilters = {
-      category: 'todos',
-      search: '',
-      city: 'todas',
-      price: 'todos',
-      aceita_troca: null,
-      modelSearch: '',
-      status: 'todos',
-      showSoldOnly: false // Manter padrão de não mostrar vendidos
-    }
-    set({ 
-      filters: defaultFilters, 
-      showNoResultsMessage: false, 
-      searchedModel: '' 
+    const filteredListings = applyFiltersToListings(listings, filters)
+    set({
+      listings,
+      filteredListings,
+      showNoResultsMessage: !!filters.modelSearch && filteredListings.length === 0,
+      searchedModel: filters.modelSearch && filteredListings.length === 0 ? filters.modelSearch : '',
     })
-    const { listings } = get()
-    set({ filteredListings: applyFiltersToListings(listings || [], defaultFilters) })
-  },
-  
-  applyFilters: () => {
-    const { listings, filters } = get()
-    const filteredListings = applyFiltersToListings(listings || [], filters || {})
-    set({ filteredListings })
-    
-    if (filters?.modelSearch && filteredListings.length === 0) {
-      set({ showNoResultsMessage: true, searchedModel: filters.modelSearch })
-    } else {
-      set({ showNoResultsMessage: false, searchedModel: '' })
-    }
-  },
-
-  searchByModel: (model) => {
-    const currentFilters = get().filters || {}
-    const filters = { 
-      ...currentFilters, 
-      modelSearch: model,
-      search: '',
-      showSoldOnly: false // Garantir que busca por modelo não inclua vendidos
-    }
-    set({ filters, searchedModel: model })
-    
-    const { listings } = get()
-    const filteredListings = applyFiltersToListings(listings || [], filters)
-    set({ filteredListings })
-    
-    if (model && filteredListings.length === 0) {
-      set({ showNoResultsMessage: true })
-    } else {
-      set({ showNoResultsMessage: false })
-    }
-  },
-
-  clearModelSearch: () => {
-    const currentFilters = get().filters || {}
-    const filters = { 
-      ...currentFilters, 
-      modelSearch: '',
-      showSoldOnly: false // Manter exclusão de vendidos
-    }
-    set({ 
-      filters, 
-      showNoResultsMessage: false, 
-      searchedModel: '' 
-    })
-    
-    const { listings } = get()
-    const filteredListings = applyFiltersToListings(listings || [], filters)
-    set({ filteredListings })
-  },
-  
-  addListing: (listing) => {
-    const newListing = {
-      ...listing,
-      id: Date.now().toString(),
-      views: 0,
-      clicks_whatsapp: 0,
-      created_at: new Date().toISOString().split('T')[0],
-      status: 'em_revisao' as const
-    }
-    
-    const currentListings = get().listings || []
-    const newListings = [...currentListings, newListing]
-    set({ listings: newListings })
-    
-    const { filters } = get()
-    const filteredListings = applyFiltersToListings(newListings, filters || {})
-    set({ filteredListings })
-  },
-
-  createListing: async (listing) => {
-    set({ isLoading: true })
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      const newListing = {
-        ...listing,
-        id: Date.now().toString(),
-        views: 0,
-        clicks_whatsapp: 0,
-        created_at: new Date().toISOString().split('T')[0],
-        status: 'em_revisao' as const
-      }
-      
-      const currentListings = get().listings || []
-      const newListings = [...currentListings, newListing]
-      set({ listings: newListings })
-      
-      const { filters } = get()
-      const filteredListings = applyFiltersToListings(newListings, filters || {})
-      set({ filteredListings })
-      
-      return true
-    } catch (error) {
-      console.error('Erro ao criar anúncio:', error)
-      return false
-    } finally {
-      set({ isLoading: false })
-    }
-  },
-  
-  incrementViews: (id) => {
-    const currentListings = get().listings || []
-    const listings = currentListings.map(listing =>
-      listing.id === id ? { ...listing, views: listing.views + 1 } : listing
-    )
-    set({ listings })
-    
-    const { filters } = get()
-    const filteredListings = applyFiltersToListings(listings, filters || {})
-    set({ filteredListings })
-  },
-  
-  incrementWhatsAppClicks: (id) => {
-    const currentListings = get().listings || []
-    const listings = currentListings.map(listing =>
-      listing.id === id ? { ...listing, clicks_whatsapp: listing.clicks_whatsapp + 1 } : listing
-    )
-    set({ listings })
-    
-    const { filters } = get()
-    const filteredListings = applyFiltersToListings(listings, filters || {})
-    set({ filteredListings })
-  },
-  
-  deleteListing: (id) => {
-    const currentListings = get().listings || []
-    const listings = currentListings.filter(listing => listing.id !== id)
-    set({ listings })
-    
-    const { filters } = get()
-    const filteredListings = applyFiltersToListings(listings, filters || {})
-    set({ filteredListings })
-  },
-
-  // Novas funções administrativas
-  approveListing: async (id, adminNotes) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const currentListings = get().listings || []
-      const listings = currentListings.map(listing =>
-        listing.id === id ? { 
-          ...listing, 
-          status: 'publicado' as const,
-          admin_notes: adminNotes || ''
-        } : listing
-      )
-      set({ listings })
-      
-      const { filters } = get()
-      const filteredListings = applyFiltersToListings(listings, filters || {})
-      set({ filteredListings })
-      
-      return true
-    } catch (error) {
-      console.error('Erro ao aprovar anúncio:', error)
-      return false
-    }
-  },
-
-  rejectListing: async (id, reason) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const currentListings = get().listings || []
-      const listings = currentListings.map(listing =>
-        listing.id === id ? { 
-          ...listing, 
-          status: 'rejeitado' as const,
-          rejection_reason: reason
-        } : listing
-      )
-      set({ listings })
-      
-      const { filters } = get()
-      const filteredListings = applyFiltersToListings(listings, filters || {})
-      set({ filteredListings })
-      
-      return true
-    } catch (error) {
-      console.error('Erro ao rejeitar anúncio:', error)
-      return false
-    }
-  },
-
-  updateListing: async (id, updates) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      const currentListings = get().listings || []
-      const listings = currentListings.map(listing =>
-        listing.id === id ? { ...listing, ...updates } : listing
-      )
-      set({ listings })
-      
-      const { filters } = get()
-      const filteredListings = applyFiltersToListings(listings, filters || {})
-      set({ filteredListings })
-      
-      return true
-    } catch (error) {
-      console.error('Erro ao atualizar anúncio:', error)
-      return false
-    }
-  },
-
-  // Nova função para marcar como vendido
-  markAsSold: async (id, adminNotes) => {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const currentListings = get().listings || []
-      const listings = currentListings.map(listing =>
-        listing.id === id ? { 
-          ...listing, 
-          status: 'vendido' as const,
-          sold_at: new Date().toISOString(),
-          admin_notes: adminNotes || '',
-          telefone: '', // Remove informações de contato
-          preco: 'VENDIDO' // Altera o preço para "VENDIDO"
-        } : listing
-      )
-      set({ listings })
-      
-      const { filters } = get()
-      const filteredListings = applyFiltersToListings(listings, filters || {})
-      set({ filteredListings })
-      
-      return true
-    } catch (error) {
-      console.error('Erro ao marcar como vendido:', error)
-      return false
-    }
-  },
-
-  // Função para obter anúncios vendidos - ATUALIZADA
-  getSoldListings: () => {
-    const { listings } = get()
-    const soldListings = listings.filter(listing => listing.status === 'vendido')
-    console.log('Veículos vendidos encontrados:', soldListings.length)
-    return soldListings
-  },
-
-  // Função genérica para filtrar por status
-  getListingsByStatus: (status) => {
-    const { listings } = get()
-    return listings.filter(listing => listing.status === status)
   }
-}))
+
+  /** Aplica a mudança na tela e grava no banco; desfaz se o banco recusar. */
+  const alterar = async (id: string, updates: Partial<Listing>, msgErro: string) => {
+    const antes = get().listings
+    atualizar(antes.map((l) => (l.id === id ? { ...l, ...updates } : l)))
+    if (!supabase) return true
+
+    const { data, error } = await supabase.from('listings').update(paraLinha(updates)).eq('id', id).select().maybeSingle()
+    if (error || !data) {
+      atualizar(antes)
+      toast.error(error ? mensagemDeErro(error, msgErro) : 'Você não tem permissão para alterar este anúncio.')
+      return false
+    }
+    // O banco pode ajustar campos (ex.: edição volta o anúncio para revisão)
+    atualizar(get().listings.map((l) => (l.id === id ? deLinha(data as ListingRow) : l)))
+    return true
+  }
+
+  return {
+    listings: listaInicial,
+    filteredListings: applyFiltersToListings(listaInicial, filtrosPadrao),
+    filters: filtrosPadrao,
+    isLoading: false,
+    loadError: null,
+    showNoResultsMessage: false,
+    searchedModel: '',
+
+    fetchListings: async () => {
+      if (!supabase) return
+      set({ isLoading: true, loadError: null })
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .order('destaque', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1000)
+      if (error) {
+        set({ isLoading: false, loadError: mensagemDeErro(error, 'Não foi possível carregar os anúncios.') })
+        return
+      }
+      atualizar((data as ListingRow[]).map(deLinha))
+      set({ isLoading: false })
+    },
+
+    setListings: (listings) => atualizar(listings || []),
+
+    setFilters: (newFilters) => {
+      set({ filters: { ...get().filters, ...newFilters } })
+      atualizar(get().listings)
+    },
+
+    clearFilters: () => {
+      set({ filters: filtrosPadrao, showNoResultsMessage: false, searchedModel: '' })
+      atualizar(get().listings)
+    },
+
+    applyFilters: () => atualizar(get().listings),
+
+    searchByModel: (model) => {
+      set({ filters: { ...get().filters, modelSearch: model, search: '', showSoldOnly: false } })
+      atualizar(get().listings)
+    },
+
+    clearModelSearch: () => {
+      set({ filters: { ...get().filters, modelSearch: '', showSoldOnly: false } })
+      atualizar(get().listings)
+    },
+
+    createListing: async (dados) => {
+      set({ isLoading: true })
+      const { nome_anunciante, email, ...anuncio } = dados
+      const userId = useAuthStore.getState().user?.id ?? null
+
+      try {
+        if (!supabase) {
+          const novo: Listing = {
+            ...anuncio,
+            id: crypto.randomUUID(),
+            user_id: userId,
+            views: 0,
+            clicks_whatsapp: 0,
+            created_at: new Date().toISOString(),
+            status: 'em_revisao',
+          }
+          atualizar([novo, ...get().listings])
+          return true
+        }
+
+        const id = crypto.randomUUID()
+        const images = await enviarFotos(anuncio.images, userId)
+        const row = { ...paraLinha({ ...anuncio, images }), id, user_id: userId }
+
+        // Visitante não consegue ler o anúncio de volta (está em revisão), então sem .select()
+        const { error } = await supabase.from('listings').insert(row)
+        if (error) throw error
+
+        if (!userId && nome_anunciante && email) {
+          const { error: contatoErro } = await supabase
+            .from('listing_contacts')
+            .insert({ listing_id: id, nome: nome_anunciante, email })
+          if (contatoErro) console.warn('Contato do anunciante não salvo:', contatoErro)
+        }
+
+        if (userId) await get().fetchListings()
+        return true
+      } catch (error) {
+        console.error('Erro ao criar anúncio:', error)
+        toast.error(mensagemDeErro(error, 'Não foi possível enviar o anúncio.'))
+        return false
+      } finally {
+        set({ isLoading: false })
+      }
+    },
+
+    incrementViews: (id) => {
+      atualizar(get().listings.map((l) => (l.id === id ? { ...l, views: l.views + 1 } : l)))
+      if (supabase) enviarSemEsperar(supabase.rpc('increment_listing_views', { listing_id: id }))
+    },
+
+    incrementWhatsAppClicks: (id) => {
+      atualizar(get().listings.map((l) => (l.id === id ? { ...l, clicks_whatsapp: l.clicks_whatsapp + 1 } : l)))
+      if (supabase) enviarSemEsperar(supabase.rpc('increment_listing_whatsapp', { listing_id: id }))
+    },
+
+    deleteListing: async (id) => {
+      const antes = get().listings
+      const alvo = antes.find((l) => l.id === id)
+      atualizar(antes.filter((l) => l.id !== id))
+      if (!supabase) return true
+      const { error, count } = await supabase.from('listings').delete({ count: 'exact' }).eq('id', id)
+      if (error || count === 0) {
+        atualizar(antes)
+        toast.error(error ? mensagemDeErro(error, 'Não foi possível excluir.') : 'Você não tem permissão para excluir este anúncio.')
+        return false
+      }
+      if (alvo) void apagarFotos(alvo.images)
+      return true
+    },
+
+    approveListing: (id, adminNotes) =>
+      alterar(id, { status: 'publicado', admin_notes: adminNotes || undefined, rejection_reason: undefined }, 'Não foi possível aprovar.'),
+
+    rejectListing: (id, reason) =>
+      alterar(id, { status: 'rejeitado', rejection_reason: reason }, 'Não foi possível rejeitar.'),
+
+    updateListing: (id, updates) => alterar(id, updates, 'Não foi possível salvar o anúncio.'),
+
+    markAsSold: (id, adminNotes) =>
+      alterar(
+        id,
+        { status: 'vendido', sold_at: new Date().toISOString(), admin_notes: adminNotes || undefined },
+        'Não foi possível marcar como vendido.',
+      ),
+
+    getSoldListings: () => get().listings.filter((l) => l.status === 'vendido'),
+
+    getListingsByStatus: (status) => get().listings.filter((l) => l.status === status),
+  }
+})
+
+// Carrega do banco ao abrir o site e de novo quando alguém entra ou sai
+// (o admin e o dono enxergam mais anúncios que o visitante).
+if (supabase) {
+  void useListingsStore.getState().fetchListings()
+  let ultimoUsuario: string | null | undefined
+  useAuthStore.subscribe((state) => {
+    const atual = state.ready ? state.user?.id ?? null : undefined
+    if (atual !== undefined && atual !== ultimoUsuario) {
+      if (ultimoUsuario !== undefined) void useListingsStore.getState().fetchListings()
+      ultimoUsuario = atual
+    }
+  })
+}

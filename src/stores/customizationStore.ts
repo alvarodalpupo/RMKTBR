@@ -1,6 +1,6 @@
 
 import { create } from 'zustand'
-import { lumi } from '../lib/lumi'
+import { supabase, mensagemDeErro } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 interface CustomizationConfig {
@@ -38,6 +38,24 @@ interface CustomizationState {
   importConfigs: (jsonData: string) => Promise<boolean>
 }
 
+type CustomizationRow = Omit<CustomizationConfig, '_id'> & { id: string }
+const deLinha = ({ id, ...resto }: CustomizationRow): CustomizationConfig => ({ _id: id, ...resto })
+const semId = (c: Partial<CustomizationConfig>) => {
+  const { _id, ...resto } = c as Partial<CustomizationConfig> & { createdAt?: string; updatedAt?: string; creator?: string }
+  void _id
+  const r = resto as Record<string, unknown>
+  delete r.createdAt; delete r.updatedAt; delete r.creator
+  return r
+}
+const tabela = () => {
+  if (!supabase) throw new Error('Supabase não configurado (modo demonstração).')
+  return supabase.from('site_customization')
+}
+const ok = <T,>({ data, error }: { data: T; error: unknown }) => {
+  if (error) throw error
+  return data
+}
+
 export const useCustomizationStore = create<CustomizationState>((set, get) => ({
   configs: [],
   loading: false,
@@ -57,13 +75,12 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
   fetchConfigs: async () => {
     set({ loading: true })
     try {
-      const { list } = await lumi.entities.site_customization.list({
-        sort: { section: 1, order: 1 }
-      })
-      set({ configs: list || [], loading: false })
+      if (!supabase) return set({ loading: false })
+      const list = ok(await tabela().select('*').order('section').order('order'))
+      set({ configs: (list as CustomizationRow[]).map(deLinha), loading: false })
     } catch (error) {
       console.error('Erro ao carregar configurações:', error)
-      toast.error('Erro ao carregar configurações')
+      toast.error(mensagemDeErro(error, 'Erro ao carregar configurações'))
       set({ loading: false })
     }
   },
@@ -75,32 +92,17 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       const existingConfig = configs.find(c => c.key === key)
       
       if (existingConfig) {
-        const updated = await lumi.entities.site_customization.update(existingConfig._id, {
-          value,
-          updatedAt: new Date().toISOString()
-        })
-        
+        if (supabase) ok(await tabela().update({ value, updated_at: new Date().toISOString() }).eq('id', existingConfig._id))
         set({
-          configs: configs.map(c => c.key === key ? { ...c, value, updatedAt: updated.updatedAt } : c),
+          configs: configs.map(c => c.key === key ? { ...c, value } : c),
           saving: false
         })
       } else {
         // Criar nova configuração se não existir
-        const newConfig = await lumi.entities.site_customization.create({
-          section: 'visual',
-          key,
-          value,
-          type: 'text',
-          label: key,
-          description: '',
-          category: 'general',
-          order: 999,
-          active: true,
-          creator: 'admin',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })
-        
+        const base = { section: 'visual' as const, key, value, type: 'text' as const, label: key, description: '', category: 'general', order: 999, active: true }
+        const newConfig = supabase
+          ? deLinha(ok(await tabela().insert(base).select().single()) as CustomizationRow)
+          : { ...base, _id: crypto.randomUUID() }
         set({
           configs: [...configs, newConfig],
           saving: false
@@ -110,7 +112,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       return true
     } catch (error) {
       console.error('Erro ao atualizar configuração:', error)
-      toast.error('Erro ao salvar configuração')
+      toast.error(mensagemDeErro(error, 'Erro ao salvar configuração'))
       set({ saving: false })
       return false
     }
@@ -118,12 +120,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
 
   createConfig: async (config) => {
     try {
-      const newConfig = await lumi.entities.site_customization.create({
-        ...config,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      })
-      
+      const newConfig = deLinha(ok(await tabela().insert(semId(config)).select().single()) as CustomizationRow)
       set({
         configs: [...get().configs, newConfig]
       })
@@ -132,14 +129,14 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       return true
     } catch (error) {
       console.error('Erro ao criar configuração:', error)
-      toast.error('Erro ao criar configuração')
+      toast.error(mensagemDeErro(error, 'Erro ao criar configuração'))
       return false
     }
   },
 
   deleteConfig: async (id: string) => {
     try {
-      await lumi.entities.site_customization.delete(id)
+      ok(await tabela().delete().eq('id', id))
       set({
         configs: get().configs.filter(c => c._id !== id)
       })
@@ -147,7 +144,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       return true
     } catch (error) {
       console.error('Erro ao deletar configuração:', error)
-      toast.error('Erro ao remover configuração')
+      toast.error(mensagemDeErro(error, 'Erro ao remover configuração'))
       return false
     }
   },
@@ -157,10 +154,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
     try {
       const promises = configUpdates.map(async (update) => {
         if (update._id) {
-          return lumi.entities.site_customization.update(update._id, {
-            ...update,
-            updatedAt: new Date().toISOString()
-          })
+          return ok(await tabela().update({ ...semId(update), updated_at: new Date().toISOString() }).eq('id', update._id))
         }
         return null
       })
@@ -173,7 +167,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       return true
     } catch (error) {
       console.error('Erro ao salvar configurações:', error)
-      toast.error('Erro ao salvar configurações')
+      toast.error(mensagemDeErro(error, 'Erro ao salvar configurações'))
       set({ saving: false })
       return false
     }
@@ -183,7 +177,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
     try {
       const sectionConfigs = get().getConfigsBySection(section)
       const deletePromises = sectionConfigs.map(config => 
-        lumi.entities.site_customization.delete(config._id)
+        tabela().delete().eq('id', config._id).then(ok)
       )
       
       await Promise.all(deletePromises)
@@ -193,7 +187,7 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       return true
     } catch (error) {
       console.error('Erro ao resetar seção:', error)
-      toast.error('Erro ao resetar seção')
+      toast.error(mensagemDeErro(error, 'Erro ao resetar seção'))
       return false
     }
   },
@@ -213,28 +207,17 @@ export const useCustomizationStore = create<CustomizationState>((set, get) => ({
       
       // Deletar configurações existentes
       const existingIds = get().configs.map(c => c._id)
-      await Promise.all(existingIds.map(id => 
-        lumi.entities.site_customization.delete(id)
-      ))
+      if (existingIds.length) ok(await tabela().delete().in('id', existingIds))
       
       // Criar novas configurações
-      const createPromises = importedConfigs.map(config => 
-        lumi.entities.site_customization.create({
-          ...config,
-          _id: undefined, // Remove _id para criar novo
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        })
-      )
-      
-      await Promise.all(createPromises)
+      if (importedConfigs.length) ok(await tabela().insert(importedConfigs.map((c: Partial<CustomizationConfig>) => semId(c))))
       await get().fetchConfigs()
       
       toast.success('Configurações importadas com sucesso!')
       return true
     } catch (error) {
       console.error('Erro ao importar configurações:', error)
-      toast.error('Erro ao importar - verifique o formato JSON')
+      toast.error(mensagemDeErro(error, 'Erro ao importar - verifique o formato JSON'))
       return false
     }
   }

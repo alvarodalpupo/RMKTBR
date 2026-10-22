@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import {Users, Car, BarChart3, Settings, Clock, CheckCircle, X, Eye, MessageCircleDashed as MessageCircle, Shield, AlertTriangle, FileText, Send, Search, Filter, UserCheck, UserX, Crown, Trash2, Edit3, Download, Upload, Save, RotateCcw, Mail, Phone, Globe, Lock, Image, Bell, Smartphone, Monitor, Facebook, Instagram, MessageSquare, Copy, ExternalLink, Ban, UserMinus, Star, Palette, ShoppingCart, DollarSign, Edit, Reply, Archive, Flag, Tag, Calendar, TrendingUp, Clock3, MailOpen, MessageSquareMore, Plus, Minus, RefreshCw, Activity, Zap, Target, Award, Heart, ThumbsUp, ThumbsDown, AlertCircle} from 'lucide-react'
+import { Users, Car, BarChart3, Settings, Clock, CheckCircle, X, Eye, MessageCircleDashed as MessageCircle, Shield, FileText, Search, UserCheck, Crown, Edit3, Download, Save, RotateCcw, Mail, Globe, Lock, Bell, Star, Palette, ShoppingCart, TrendingUp, Clock3, MailOpen, MessageSquareMore, Plus } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
-import { useListingsStore } from '../stores/listingsStore'
-import { useNotificationsStore } from '../stores/notificationsStore'
-import { useUsersStore, User } from '../stores/usersStore'
-import { useConfigStore } from '../stores/configStore'
+import { useListingsStore, type Listing } from '../stores/listingsStore'
+import { useUsersStore, type User, type UserFilters } from '../stores/usersStore'
+
+type UserRoleFilter = UserFilters['role']
+type UserStatusFilter = UserFilters['status']
+import { useConfigStore, type SystemConfig } from '../stores/configStore'
 import { useCustomizationStore } from '../stores/customizationStore'
 import { useContactMessagesStore } from '../stores/contactMessagesStore'
-import { ContactMessage } from '../types/contactMessage'
+import type { ContactMessage, ContactMessageFilters } from '../types/contactMessage'
 import ColorPicker from '../components/ColorPicker'
 import ImageUploader from '../components/ImageUploader'
 import PowerTorqueBar from '../components/PowerTorqueBar'
@@ -30,31 +32,25 @@ const Admin = () => {
   } = useListingsStore()
   
   const { 
-    users, filters, loading: usersLoading, setFilters, getFilteredUsers, 
+    users, filters, setFilters, getFilteredUsers, 
     getUserStats, banUser, unbanUser, suspendUser, promoteToAdmin, 
-    demoteFromAdmin, verifyUser, deleteUser, updateUser, initializeUsers 
+    demoteFromAdmin, deleteUser, updateUser, initializeUsers 
   } = useUsersStore()
   
-  const { config, loading: configLoading, updateConfig, resetToDefaults, exportConfig, importConfig } = useConfigStore()
+  const { config, loading: configLoading, updateConfig, exportConfig } = useConfigStore()
   
   const {
-    configs,
-    loading: customizationLoading,
     saving: customizationSaving,
-    getConfigsBySection,
     getConfigValue,
     fetchConfigs,
     updateConfig: updateCustomizationConfig,
-    saveAllConfigs,
-    exportConfigs,
-    importConfigs
+    exportConfigs
   } = useCustomizationStore()
 
   // Contact Messages Store
   const {
     messages: contactMessages,
     filters: messageFilters,
-    loading: messagesLoading,
     setFilters: setMessageFilters,
     getFilteredMessages,
     getStats: getMessageStats,
@@ -63,8 +59,6 @@ const Admin = () => {
     markAsResponded,
     archiveMessage,
     updatePriority,
-    updateStatus,
-    addAdminNotes,
     markMultipleAsRead,
     archiveMultiple,
     updateMultiplePriority,
@@ -79,7 +73,7 @@ const Admin = () => {
   const [showApproveModal, setShowApproveModal] = useState(false)
   const [showSoldModal, setShowSoldModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
-  const [editingListing, setEditingListing] = useState<any>(null)
+  const [editingListing, setEditingListing] = useState<Listing | null>(null)
   
   // User Management States
   const [showUserModal, setShowUserModal] = useState(false)
@@ -90,21 +84,19 @@ const Admin = () => {
   const [editUserData, setEditUserData] = useState<Partial<User>>({})
 
   // Config States
-  const [configChanges, setConfigChanges] = useState<any>({})
-  const [showConfigExport, setShowConfigExport] = useState(false)
-  const [importConfigText, setImportConfigText] = useState('')
+  const [configChanges, setConfigChanges] = useState<Partial<SystemConfig>>({})
+  const [, setShowConfigExport] = useState(false)
 
   // Customization States
   const [customizationChanges, setCustomizationChanges] = useState<Record<string, string>>({})
-  const [showCustomizationExport, setShowCustomizationExport] = useState(false)
-  const [importCustomizationData, setImportCustomizationData] = useState('')
+  const [, setShowCustomizationExport] = useState(false)
 
   // Contact Messages States
   const [selectedMessages, setSelectedMessages] = useState<string[]>([])
   const [showResponseModal, setShowResponseModal] = useState(false)
   const [respondingMessage, setRespondingMessage] = useState<ContactMessage | null>(null)
-  const [showMessageDetails, setShowMessageDetails] = useState(false)
-  const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null)
+  const [, setShowMessageDetails] = useState(false)
+  const [, setSelectedMessage] = useState<ContactMessage | null>(null)
 
   // Safe initialization effect
   useEffect(() => {
@@ -123,15 +115,14 @@ const Admin = () => {
   }, [activeTab, initializeUsers, fetchConfigs])
 
   // Memoized data to prevent unnecessary re-renders
-  const pendingListings = React.useMemo(() => getListingsByStatus('em_revisao'), [getListingsByStatus])
-  const publishedListings = React.useMemo(() => getListingsByStatus('publicado'), [getListingsByStatus])
-  const archivedListings = React.useMemo(() => getListingsByStatus('arquivado'), [getListingsByStatus])
-  const soldListings = React.useMemo(() => getSoldListings(), [getSoldListings])
+  const pendingListings = getListingsByStatus('em_revisao')
+  const publishedListings = getListingsByStatus('publicado')
+  const soldListings = getSoldListings()
 
-  // Contact Messages Data - memoized
-  const filteredMessages = React.useMemo(() => getFilteredMessages(), [getFilteredMessages, messageFilters])
-  const messageStats = React.useMemo(() => getMessageStats(), [getMessageStats, contactMessages])
-  const unreadMessagesCount = React.useMemo(() => getUnreadCount(), [getUnreadCount, contactMessages])
+  // Calculados a cada render: os getters do store são estáveis e o useMemo congelava os dados
+  const filteredMessages = getFilteredMessages()
+  const messageStats = getMessageStats()
+  const unreadMessagesCount = getUnreadCount()
 
   const handleApprove = React.useCallback(async (listingId: string) => {
     setSelectedListingId(listingId)
@@ -149,7 +140,7 @@ const Admin = () => {
       } else {
         toast.error('Erro ao aprovar anúncio')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao aprovar anúncio')
     }
   }, [approveListing, selectedListingId, adminNotes])
@@ -175,7 +166,7 @@ const Admin = () => {
       } else {
         toast.error('Erro ao rejeitar anúncio')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao rejeitar anúncio')
     }
   }, [rejectListing, selectedListingId, rejectionComment])
@@ -188,7 +179,7 @@ const Admin = () => {
       } else {
         toast.error('Erro ao alterar destaque')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao alterar destaque')
     }
   }, [updateListing])
@@ -209,12 +200,12 @@ const Admin = () => {
       } else {
         toast.error('Erro ao marcar como vendido')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao marcar como vendido')
     }
   }, [markAsSold, selectedListingId, adminNotes])
 
-  const handleEditListing = React.useCallback((listing: any) => {
+  const handleEditListing = React.useCallback((listing: Listing) => {
     setEditingListing(listing)
     setShowEditModal(true)
   }, [])
@@ -231,11 +222,11 @@ const Admin = () => {
         ano: parseInt(formData.get('ano') as string),
         cidade: formData.get('cidade') as string,
         uf: formData.get('uf') as string,
-        categoria: formData.get('categoria') as string,
+        categoria: formData.get('categoria') as Listing['categoria'],
         descricao: formData.get('descricao') as string,
         power_whp: parseInt(formData.get('power_whp') as string) || undefined,
         torque_kgfm: parseFloat(formData.get('torque_kgfm') as string) || undefined,
-        tracao: formData.get('tracao') as string,
+        tracao: (formData.get('tracao') as Listing['tracao']) || undefined,
         aceita_troca: formData.get('aceita_troca') === 'true'
       }
 
@@ -247,12 +238,20 @@ const Admin = () => {
       } else {
         toast.error('Erro ao atualizar anúncio')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao atualizar anúncio')
     }
   }, [updateListing, editingListing])
 
   // User Management Functions
+  const resetUserModal = React.useCallback(() => {
+    setSelectedUser(null)
+    setUserAction(null)
+    setActionReason('')
+    setSuspensionDays(7)
+    setEditUserData({})
+  }, [])
+
   const handleUserAction = React.useCallback((user: User, action: typeof userAction) => {
     setSelectedUser(user)
     setUserAction(action)
@@ -303,18 +302,10 @@ const Admin = () => {
       } else {
         toast.error('Erro ao executar ação')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao executar ação')
     }
-  }, [selectedUser, userAction, actionReason, suspensionDays, editUserData, banUser, suspendUser, promoteToAdmin, demoteFromAdmin, deleteUser, updateUser])
-
-  const resetUserModal = React.useCallback(() => {
-    setSelectedUser(null)
-    setUserAction(null)
-    setActionReason('')
-    setSuspensionDays(7)
-    setEditUserData({})
-  }, [])
+  }, [selectedUser, userAction, actionReason, suspensionDays, editUserData, banUser, suspendUser, promoteToAdmin, demoteFromAdmin, deleteUser, updateUser, resetUserModal])
 
   const handleUnbanUser = React.useCallback(async (userId: string) => {
     try {
@@ -324,14 +315,14 @@ const Admin = () => {
       } else {
         toast.error('Erro ao desbanear usuário')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao desbanear usuário')
     }
   }, [unbanUser])
 
   // Config Functions
-  const handleConfigChange = React.useCallback((key: string, value: any) => {
-    setConfigChanges(prev => ({ ...prev, [key]: value }))
+  const handleConfigChange = React.useCallback(<K extends keyof SystemConfig>(key: K, value: SystemConfig[K]) => {
+    setConfigChanges((prev) => ({ ...prev, [key]: value }))
   }, [])
 
   const saveConfig = React.useCallback(async () => {
@@ -343,7 +334,7 @@ const Admin = () => {
       } else {
         toast.error('Erro ao salvar configurações')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao salvar configurações')
     }
   }, [updateConfig, configChanges])
@@ -354,29 +345,10 @@ const Admin = () => {
       navigator.clipboard.writeText(configData)
       toast.success('Configurações copiadas para a área de transferência!')
       setShowConfigExport(true)
-    } catch (error) {
+    } catch {
       toast.error('Erro ao exportar configurações')
     }
   }, [exportConfig])
-
-  const handleConfigImport = React.useCallback(() => {
-    if (!importConfigText.trim()) {
-      toast.error('Cole as configurações para importar')
-      return
-    }
-
-    try {
-      const success = importConfig(importConfigText)
-      if (success) {
-        toast.success('Configurações importadas com sucesso!')
-        setImportConfigText('')
-      } else {
-        toast.error('Erro ao importar configurações - formato inválido')
-      }
-    } catch (error) {
-      toast.error('Erro ao importar configurações')
-    }
-  }, [importConfig, importConfigText])
 
   // Customization Functions
   const handleCustomizationChange = React.useCallback((key: string, value: string) => {
@@ -402,14 +374,14 @@ const Admin = () => {
       } else {
         toast.error('Algumas alterações falharam')
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro ao salvar customizações')
     }
   }, [customizationChanges, updateCustomizationConfig])
 
   const resetCustomizations = React.useCallback(() => {
     setCustomizationChanges({})
-    toast.info('Alterações descartadas')
+    toast('Alterações descartadas', { icon: 'ℹ️' })
   }, [])
 
   const exportCustomizations = React.useCallback(() => {
@@ -418,27 +390,11 @@ const Admin = () => {
       navigator.clipboard.writeText(data)
       setShowCustomizationExport(true)
       toast.success('Configurações copiadas para área de transferência!')
-    } catch (error) {
+    } catch {
       toast.error('Erro ao exportar configurações')
     }
   }, [exportConfigs])
 
-  const importCustomizations = React.useCallback(async () => {
-    if (!importCustomizationData.trim()) {
-      toast.error('Cole os dados de configuração')
-      return
-    }
-    
-    try {
-      const success = await importConfigs(importCustomizationData)
-      if (success) {
-        setImportCustomizationData('')
-        setCustomizationChanges({})
-      }
-    } catch (error) {
-      toast.error('Erro ao importar configurações')
-    }
-  }, [importConfigs, importCustomizationData])
 
   // Contact Messages Functions
   const handleMessageSelect = React.useCallback((messageId: string) => {
@@ -453,7 +409,7 @@ const Admin = () => {
     try {
       markAsRead(messageId, user?.id || 'admin')
       toast.success('Mensagem marcada como lida')
-    } catch (error) {
+    } catch {
       toast.error('Erro ao marcar mensagem como lida')
     }
   }, [markAsRead, user?.id])
@@ -474,7 +430,7 @@ const Admin = () => {
     try {
       markAsResponded(messageId, response, user?.id || 'admin')
       toast.success('Resposta enviada com sucesso!')
-    } catch (error) {
+    } catch {
       toast.error('Erro ao enviar resposta')
     }
   }, [markAsResponded, user?.id])
@@ -483,7 +439,7 @@ const Admin = () => {
     try {
       archiveMessage(messageId)
       toast.success('Mensagem arquivada')
-    } catch (error) {
+    } catch {
       toast.error('Erro ao arquivar mensagem')
     }
   }, [archiveMessage])
@@ -492,7 +448,7 @@ const Admin = () => {
     try {
       updatePriority(messageId, priority)
       toast.success('Prioridade atualizada')
-    } catch (error) {
+    } catch {
       toast.error('Erro ao atualizar prioridade')
     }
   }, [updatePriority])
@@ -515,7 +471,7 @@ const Admin = () => {
         markMultipleAsRead(selectedMessages, user?.id || 'admin')
         setSelectedMessages([])
         toast.success('Mensagens marcadas como lidas')
-      } catch (error) {
+      } catch {
         toast.error('Erro ao marcar mensagens como lidas')
       }
     }
@@ -527,7 +483,7 @@ const Admin = () => {
         archiveMultiple(selectedMessages)
         setSelectedMessages([])
         toast.success('Mensagens arquivadas')
-      } catch (error) {
+      } catch {
         toast.error('Erro ao arquivar mensagens')
       }
     }
@@ -539,7 +495,7 @@ const Admin = () => {
         updateMultiplePriority(selectedMessages, priority)
         setSelectedMessages([])
         toast.success('Prioridade atualizada')
-      } catch (error) {
+      } catch {
         toast.error('Erro ao atualizar prioridade')
       }
     }
@@ -574,8 +530,8 @@ const Admin = () => {
     total_whatsapp: listings.reduce((sum, l) => sum + l.clicks_whatsapp, 0)
   }), [listings, pendingListings, publishedListings, soldListings, users])
 
-  const userStats = React.useMemo(() => getUserStats(), [getUserStats])
-  const filteredUsers = React.useMemo(() => getFilteredUsers(), [getFilteredUsers, filters])
+  const userStats = getUserStats()
+  const filteredUsers = getFilteredUsers()
 
   const getCategoryStats = React.useCallback(() => {
     const categories = ['turbo', 'aspirado', 'original', 'pista']
@@ -603,13 +559,13 @@ const Admin = () => {
           className="mb-8"
         >
           <div className="flex items-center space-x-3 mb-2">
-            <Shield className="w-8 h-8 text-primary-red" />
+            <Shield className="w-8 h-8 text-red-text" />
             <h1 className="font-bebas text-4xl md:text-5xl text-white">
               PAINEL ADMINISTRATIVO
             </h1>
           </div>
           <p className="text-gray-400 font-montserrat">
-            Bem-vindo, <span className="text-primary-red font-600">{user.nome}</span> - Administrador
+            Bem-vindo, <span className="text-red-text font-600">{user.nome}</span> - Administrador
           </p>
         </motion.div>
 
@@ -660,7 +616,7 @@ const Admin = () => {
           >
             <div className="flex items-center justify-between">
               <h2 className="font-bebas text-3xl text-white">ANÚNCIOS PENDENTES</h2>
-              <div className="bg-primary-red/20 text-primary-red px-4 py-2 rounded-lg font-montserrat font-600">
+              <div className="bg-primary-red/20 text-red-text px-4 py-2 rounded-lg font-montserrat font-600">
                 {pendingListings.length} aguardando revisão
               </div>
             </div>
@@ -687,25 +643,40 @@ const Admin = () => {
                             <div className="flex items-center space-x-4 text-sm text-gray-400 font-montserrat">
                               <span>{listing.ano}</span>
                               <span>{listing.cidade}, {listing.uf}</span>
-                              <span className="capitalize bg-primary-red/20 text-primary-red px-2 py-1 rounded">
+                              <span className="capitalize bg-primary-red/20 text-red-text px-2 py-1 rounded">
                                 {listing.categoria}
                               </span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-bebas text-2xl text-primary-red">{listing.preco}</div>
+                            <div className="font-bebas text-2xl text-red-text">{listing.preco}</div>
                             <div className="text-sm text-gray-400 font-montserrat">
                               {new Date(listing.created_at).toLocaleDateString('pt-BR')}
                             </div>
                           </div>
                         </div>
 
-                        {listing.power_whp && (
-                          <PowerTorqueBar 
-                            power={listing.power_whp} 
-                            torque={listing.torque_kgfm || 0}
-                            size="sm"
-                          />
+                        {!!listing.power_whp && (
+                          <div className="space-y-2 mb-3">
+                            <PowerTorqueBar
+                              value={listing.power_whp}
+                              unit="whp"
+                              icon="⚡"
+                              color="#FF3B3B"
+                              size="small"
+                              category={listing.categoria}
+                            />
+                            {!!listing.torque_kgfm && (
+                              <PowerTorqueBar
+                                value={listing.torque_kgfm}
+                                unit="kgfm"
+                                icon="🔧"
+                                color="#3B7BFF"
+                                size="small"
+                                category={listing.categoria}
+                              />
+                            )}
+                          </div>
                         )}
 
                         <p className="text-gray-300 font-montserrat line-clamp-3">
@@ -837,7 +808,7 @@ const Admin = () => {
                         </div>
                         
                         <div className="text-right">
-                          <div className="font-bebas text-xl text-primary-red">{listing.preco}</div>
+                          <div className="font-bebas text-xl text-red-text">{listing.preco}</div>
                           <div className="flex items-center space-x-3 text-sm text-gray-400">
                             <span className="flex items-center space-x-1">
                               <Eye className="w-4 h-4" />
@@ -1044,7 +1015,7 @@ const Admin = () => {
                 
                 <select
                   value={filters.role}
-                  onChange={(e) => setFilters({ role: e.target.value as any })}
+                  onChange={(e) => setFilters({ role: e.target.value as UserRoleFilter })}
                   className="px-4 py-2 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat"
                 >
                   <option value="all">Todos os papéis</option>
@@ -1054,7 +1025,7 @@ const Admin = () => {
                 
                 <select
                   value={filters.status}
-                  onChange={(e) => setFilters({ status: e.target.value as any })}
+                  onChange={(e) => setFilters({ status: e.target.value as UserStatusFilter })}
                   className="px-4 py-2 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat"
                 >
                   <option value="all">Todos os status</option>
@@ -1252,7 +1223,7 @@ const Admin = () => {
                 {getCategoryStats().map((category) => (
                   <div key={category.name} className="text-center">
                     <div className="bg-primary-black border border-gray-800 rounded-lg p-4">
-                      <div className="text-2xl font-bebas text-primary-red mb-2">{category.count}</div>
+                      <div className="text-2xl font-bebas text-red-text mb-2">{category.count}</div>
                       <div className="text-sm text-gray-400 font-montserrat capitalize">
                         {category.name}
                       </div>
@@ -1364,40 +1335,40 @@ const Admin = () => {
               {/* Cores e Visual */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Palette className="w-6 h-6 text-primary-red" />
+                  <Palette className="w-6 h-6 text-red-text" />
                   <span>CORES E VISUAL</span>
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-white font-montserrat font-600 mb-2">Cor Primária</label>
                     <ColorPicker
-                      color={getCurrentCustomizationValue('primary_color') || '#dc2626'}
+                      label="Cor Primária"
+                      value={getCurrentCustomizationValue('primary_color') || '#dc2626'}
                       onChange={(color) => handleCustomizationChange('primary_color', color)}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-white font-montserrat font-600 mb-2">Cor Secundária</label>
                     <ColorPicker
-                      color={getCurrentCustomizationValue('secondary_color') || '#1f2937'}
+                      label="Cor Secundária"
+                      value={getCurrentCustomizationValue('secondary_color') || '#1f2937'}
                       onChange={(color) => handleCustomizationChange('secondary_color', color)}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-white font-montserrat font-600 mb-2">Logo do Site</label>
                     <ImageUploader
-                      onImageSelect={(url) => handleCustomizationChange('site_logo', url)}
-                      currentImage={getCurrentCustomizationValue('site_logo')}
+                      label="Logo do Site"
+                      onChange={(url: string) => handleCustomizationChange('site_logo', url)}
+                      value={getCurrentCustomizationValue('site_logo') || ''}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-white font-montserrat font-600 mb-2">Imagem de Fundo</label>
                     <ImageUploader
-                      onImageSelect={(url) => handleCustomizationChange('hero_background', url)}
-                      currentImage={getCurrentCustomizationValue('hero_background')}
+                      label="Imagem de Fundo"
+                      onChange={(url: string) => handleCustomizationChange('hero_background', url)}
+                      value={getCurrentCustomizationValue('hero_background') || ''}
                     />
                   </div>
                 </div>
@@ -1406,7 +1377,7 @@ const Admin = () => {
               {/* Conteúdo */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <FileText className="w-6 h-6 text-primary-red" />
+                  <FileText className="w-6 h-6 text-red-text" />
                   <span>CONTEÚDO</span>
                 </h3>
                 
@@ -1446,7 +1417,7 @@ const Admin = () => {
               {/* Redes Sociais */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Globe className="w-6 h-6 text-primary-red" />
+                  <Globe className="w-6 h-6 text-red-text" />
                   <span>REDES SOCIAIS</span>
                 </h3>
                 
@@ -1545,7 +1516,7 @@ const Admin = () => {
               {/* Moderação */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Shield className="w-6 h-6 text-primary-red" />
+                  <Shield className="w-6 h-6 text-red-text" />
                   <span>MODERAÇÃO</span>
                 </h3>
                 
@@ -1624,7 +1595,7 @@ const Admin = () => {
               {/* Notificações */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Bell className="w-6 h-6 text-primary-red" />
+                  <Bell className="w-6 h-6 text-red-text" />
                   <span>NOTIFICAÇÕES</span>
                 </h3>
                 
@@ -1682,7 +1653,7 @@ const Admin = () => {
               {/* Segurança */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Lock className="w-6 h-6 text-primary-red" />
+                  <Lock className="w-6 h-6 text-red-text" />
                   <span>SEGURANÇA</span>
                 </h3>
                 
@@ -1752,7 +1723,7 @@ const Admin = () => {
               {/* Contato */}
               <div className="bg-primary-gray border border-gray-800 rounded-xl p-6">
                 <h3 className="font-bebas text-2xl text-white mb-6 flex items-center space-x-3">
-                  <Mail className="w-6 h-6 text-primary-red" />
+                  <Mail className="w-6 h-6 text-red-text" />
                   <span>INFORMAÇÕES DE CONTATO</span>
                 </h3>
                 
@@ -1842,7 +1813,7 @@ const Admin = () => {
                 
                 <select
                   value={messageFilters.status}
-                  onChange={(e) => setMessageFilters({ status: e.target.value as any })}
+                  onChange={(e) => setMessageFilters({ status: e.target.value as ContactMessageFilters['status'] })}
                   className="px-4 py-2 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat"
                 >
                   <option value="all">Todos os status</option>
@@ -1854,7 +1825,7 @@ const Admin = () => {
                 
                 <select
                   value={messageFilters.priority}
-                  onChange={(e) => setMessageFilters({ priority: e.target.value as any })}
+                  onChange={(e) => setMessageFilters({ priority: e.target.value as ContactMessageFilters['priority'] })}
                   className="px-4 py-2 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat"
                 >
                   <option value="all">Todas as prioridades</option>
@@ -1865,7 +1836,7 @@ const Admin = () => {
                 
                 <select
                   value={messageFilters.subject}
-                  onChange={(e) => setMessageFilters({ subject: e.target.value as any })}
+                  onChange={(e) => setMessageFilters({ subject: e.target.value as ContactMessageFilters['subject'] })}
                   className="px-4 py-2 bg-primary-black border border-gray-800 rounded-lg text-white font-montserrat"
                 >
                   <option value="all">Todos os assuntos</option>
@@ -2301,7 +2272,7 @@ const Admin = () => {
                       name="aceita_troca"
                       value="true"
                       defaultChecked={editingListing.aceita_troca}
-                      className="w-4 h-4 text-primary-red bg-primary-black border-gray-800 rounded"
+                      className="w-4 h-4 text-red-text bg-primary-black border-gray-800 rounded"
                     />
                     <label className="text-white font-montserrat font-600">Aceita Troca</label>
                   </div>

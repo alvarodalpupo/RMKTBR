@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Car, Calendar, MapPin, Trophy } from 'lucide-react';
+import { Car, Trophy, MapPin } from 'lucide-react';
 import CarCard from '../components/CarCard';
 import { useListingsStore } from '../stores/listingsStore';
 
@@ -24,24 +24,15 @@ const Vendidos = () => {
   // Obter estatísticas dos vendidos
   const soldListings = getSoldListings();
   const totalSold = soldListings.length;
-  const totalValue = soldListings.reduce((sum, listing) => {
-    const price = parseInt(listing.preco.replace(/\D/g, '')) || 0;
-    return sum + price;
-  }, 0);
+  const statesCount = new Set(soldListings.map((listing) => listing.uf)).size;
 
   const categoriesCount = soldListings.reduce((acc, listing) => {
     acc[listing.categoria] = (acc[listing.categoria] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
+  const topCategory = Object.entries(categoriesCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+
 
   return (
     <div className="min-h-screen bg-primary-black pt-20">
@@ -71,63 +62,26 @@ const Vendidos = () => {
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
 
           {/* Total Vendidos */}
-          
+          <div className="bg-primary-gray border border-gray-800 rounded-xl p-6 text-center">
+            <Car className="w-8 h-8 text-green-500 mx-auto mb-3" />
+            <div className="font-bebas text-4xl text-white">{totalSold}</div>
+            <div className="text-gray-400 font-montserrat text-sm">Veículos vendidos</div>
+          </div>
 
-
-
-
-
-
-
-          {/* Valor Total */}
-          
-
-
-
-
-
-
-
-
+          {/* Estados */}
+          <div className="bg-primary-gray border border-gray-800 rounded-xl p-6 text-center">
+            <MapPin className="w-8 h-8 text-green-500 mx-auto mb-3" />
+            <div className="font-bebas text-4xl text-white">{statesCount}</div>
+            <div className="text-gray-400 font-montserrat text-sm">{statesCount === 1 ? 'Estado' : 'Estados'} com vendas</div>
+          </div>
 
           {/* Categoria Mais Vendida */}
-          
-
-
-
-
-
-
-
-
+          <div className="bg-primary-gray border border-gray-800 rounded-xl p-6 text-center">
+            <Trophy className="w-8 h-8 text-green-500 mx-auto mb-3" />
+            <div className="font-bebas text-4xl text-white uppercase">{topCategory ?? '—'}</div>
+            <div className="text-gray-400 font-montserrat text-sm">Categoria mais vendida</div>
+          </div>
         </motion.div>
-
-        {/* Success Message */}
-        {totalSold > 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        }
 
         {/* Vehicles Grid */}
         <motion.div
@@ -183,21 +137,16 @@ const Vendidos = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
           className="mt-12">
-
-            
-
-
+            <h2 className="font-bebas text-3xl text-white mb-6 text-center">VENDIDOS POR CATEGORIA</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {Object.entries(categoriesCount).map(([category, count]) => {}
-
-
-
-
-
-
-
-
-            )}
+              {Object.entries(categoriesCount).map(([category, count]) =>
+                <div
+                  key={category}
+                  className="bg-primary-gray border border-gray-800 rounded-xl p-6 text-center">
+                  <div className="font-bebas text-4xl text-primary-red">{count}</div>
+                  <div className="text-gray-400 font-montserrat text-sm uppercase tracking-wide">{category}</div>
+                </div>
+              )}
             </div>
           </motion.div>
         }

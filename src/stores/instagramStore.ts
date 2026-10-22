@@ -1,6 +1,6 @@
 
 import { create } from 'zustand'
-import { InstagramStore, InstagramPost } from '../types/instagram'
+import { InstagramStore } from '../types/instagram'
 import { fetchInstagramPosts } from '../services/instagramApi'
 
 export const useInstagramStore = create<InstagramStore>((set, get) => ({

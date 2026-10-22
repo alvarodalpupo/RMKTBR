@@ -1,51 +1,73 @@
+/** @type {import('tailwindcss').Config} */
+// Identidade visual RaceMarketBR: os valores vêm do design system
+// (tokens.json) e ficam como variáveis CSS em src/index.css.
+const v = (name) => `rgb(var(--${name}) / <alpha-value>)`
 
 module.exports = {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // Selos de categoria montados com o nome da categoria (rm-badge--${categoria})
+  safelist: ['rm-badge--turbo', 'rm-badge--aspirado', 'rm-badge--original', 'rm-badge--pista'],
   theme: {
     extend: {
       fontFamily: {
-        'bebas': ['Bebas Neue', 'cursive'],
-        'montserrat': ['Montserrat', 'sans-serif'],
+        display: ['"Bebas Neue"', 'Oswald', 'Impact', 'sans-serif'],
+        sans: ['Montserrat', 'system-ui', 'sans-serif'],
+        // Nomes antigos usados no código continuam funcionando
+        bebas: ['"Bebas Neue"', 'Oswald', 'Impact', 'sans-serif'],
+        montserrat: ['Montserrat', 'system-ui', 'sans-serif'],
+      },
+      fontWeight: {
+        400: '400',
+        500: '500',
+        600: '600',
+        700: '700',
+        800: '800',
+      },
+      fontSize: {
+        hero: ['96px', { lineHeight: '0.95', letterSpacing: '0.5px' }],
+        price: ['32px', { lineHeight: '1' }],
+        lead: ['18px', { lineHeight: '28px' }],
       },
       colors: {
+        bg: v('bg'),
+        surface: v('surface'),
+        line: v('border'),
+        'line-strong': v('border-strong'),
+        ink: { DEFAULT: v('ink'), muted: v('ink-muted') },
+        red: { DEFAULT: v('red'), dark: v('red-dark'), text: v('red-text') },
+        'on-red': v('on-red'),
+        'on-category': v('on-category'),
+        success: v('success'),
+        warning: v('warning'),
+        // Aliases dos nomes antigos -> tokens
         primary: {
-          black: '#0E0E10',
-          gray: '#1A1A1D',
-          red: '#DC143C',
-          white: '#FFFFFF',
+          black: v('bg'),
+          gray: v('surface'),
+          red: v('red'),
+          white: v('ink'),
         },
-        turbo: {
-          primary: '#DC143C',
-          dark: '#B71C1C',
-          light: '#FF5252',
-        },
-        aspirado: {
-          primary: '#FFD700',
-          dark: '#FFA000',
-          light: '#FFEB3B',
-        },
-        original: {
-          primary: '#4CAF50',
-          dark: '#2E7D32',
-          light: '#81C784',
-        },
-        pista: {
-          primary: '#FF6600',
-          dark: '#E65100',
-          light: '#FF8A50',
-          black: '#0E0E10',
-        }
+        turbo: { primary: v('turbo'), secondary: v('red-text'), accent: v('red-dark'), dark: v('red-dark'), light: v('red-text') },
+        aspirado: { primary: v('aspirado'), secondary: v('aspirado'), accent: v('aspirado'), dark: v('aspirado'), light: v('aspirado') },
+        original: { primary: v('original'), secondary: v('original'), accent: v('original'), dark: v('original'), light: v('original') },
+        pista: { primary: v('pista'), secondary: v('pista'), accent: v('pista'), dark: v('pista'), light: v('pista'), black: v('bg') },
+      },
+      borderRadius: {
+        none: '0px',
+        sm: '4px',
+        md: '8px',
+        lg: '8px',
+        xl: '12px',
+        pill: '9999px',
+      },
+      boxShadow: {
+        card: '0 12px 32px rgba(0,0,0,0.5)',
       },
       backgroundImage: {
-        'gradient-race': 'linear-gradient(135deg, #0E0E10 0%, #DC143C 50%, #0E0E10 100%)',
-        'gradient-turbo': 'linear-gradient(90deg, #DC143C 0%, #B71C1C 100%)',
-        'gradient-aspirado': 'linear-gradient(90deg, #FFD700 0%, #FFA000 100%)',
-        'gradient-original': 'linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%)',
-        'gradient-pista': 'linear-gradient(90deg, #FF6600 0%, #E65100 100%)',
-      }
+        'gradient-turbo': 'linear-gradient(90deg, rgb(var(--turbo)) 0%, rgb(var(--red-dark)) 100%)',
+        'gradient-aspirado': 'linear-gradient(90deg, rgb(var(--aspirado)) 0%, rgb(var(--aspirado)) 100%)',
+        'gradient-original': 'linear-gradient(90deg, rgb(var(--original)) 0%, rgb(var(--original)) 100%)',
+        'gradient-pista': 'linear-gradient(90deg, rgb(var(--pista)) 0%, rgb(var(--pista)) 100%)',
+      },
     },
   },
   plugins: [],

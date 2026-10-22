@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Calendar, Star, Flame, Zap, CheckCircle, Flag, RefreshCw } from 'lucide-react';
+import { MapPin, Calendar, Star, Flame, Zap, CheckCircle, Flag, RefreshCw, Cog } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Listing } from '../stores/listingsStore';
 import PowerTorqueBar from './PowerTorqueBar';
@@ -26,20 +26,6 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
     }
   };
 
-  const getCategoryColor = () => {
-    switch (car.categoria) {
-      case 'turbo':
-        return 'text-turbo-primary bg-turbo-primary/10 border-turbo-primary/20';
-      case 'aspirado':
-        return 'text-aspirado-primary bg-aspirado-primary/10 border-aspirado-primary/20';
-      case 'original':
-        return 'text-original-primary bg-original-primary/10 border-original-primary/20';
-      case 'pista':
-        return 'text-pista-primary bg-pista-primary/10 border-pista-primary/20';
-      default:
-        return 'text-gray-400';
-    }
-  };
 
   const getCategoryGradient = () => {
     switch (car.categoria) {
@@ -69,18 +55,6 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
     }
   };
 
-  const getTractionIcon = () => {
-    switch (car.tracao) {
-      case 'dianteira':
-        return '🚗';
-      case 'traseira':
-        return '🏎️';
-      case 'integral':
-        return '🚙';
-      default:
-        return '🚗';
-    }
-  };
 
   // Determinar se o veículo está vendido
   const isSold = car.status === 'vendido';
@@ -88,7 +62,7 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
   return (
     <motion.div
       whileHover={{ y: isSold ? 0 : -5 }}
-      className={`group relative bg-primary-gray border border-gray-800 rounded-xl overflow-hidden transition-all duration-300 ${
+      className={`group relative bg-primary-gray border border-gray-800 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-card ${
       isSold ?
       'opacity-90 border-green-500/30' :
       'hover:border-primary-red'}`
@@ -121,10 +95,10 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
         }
 
         {/* Category Badge */}
-        <div className={`absolute top-4 right-4 z-10 flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-montserrat font-600 border ${getCategoryColor()}`}>
+        <span className={`absolute top-4 right-4 z-10 rm-badge rm-badge--${car.categoria}`}>
           {getCategoryIcon()}
-          <span className="capitalize">{car.categoria}</span>
-        </div>
+          {car.categoria}
+        </span>
 
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
@@ -150,8 +124,8 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
 
         {/* Content */}
         <div className="p-6">
-          <h3 className={`font-montserrat font-bold text-lg text-white mb-2 transition-colors line-clamp-1 ${
-          isSold ? '' : 'group-hover:text-primary-red'}`
+          <h3 className={`font-display text-2xl leading-tight tracking-[0.5px] text-ink mb-2 transition-colors line-clamp-1 ${
+          isSold ? '' : 'group-hover:text-red-text'}`
           }>
             {car.titulo}
           </h3>
@@ -169,7 +143,7 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
 
           {/* Traction Info */}
           <div className="flex items-center space-x-1 text-gray-400 text-sm mb-4">
-            <span>{getTractionIcon()}</span>
+            <Cog className="w-4 h-4" />
             <span>Tração {getTractionLabel()}</span>
           </div>
 
@@ -195,17 +169,17 @@ const CarCard: React.FC<CarCardProps> = ({ car }) => {
 
           {/* Price and Action */}
           <div className="flex items-center justify-between">
-            <span className={`font-bebas text-2xl ${
-            isSold ? 'text-green-500' : 'text-primary-red'}`
+            <span className={`font-display text-price tabular-nums ${
+            isSold ? 'text-success' : 'text-red'}`
             }>
               {car.preco}
             </span>
             <span className={`font-montserrat font-600 transition-transform ${
             isSold ?
-            'text-green-500' :
-            'text-primary-red group-hover:translate-x-1'}`
+            'text-success' :
+            'text-red-text group-hover:translate-x-1'}`
             }>
-              {isSold ? 'Vendido ✓' : 'Ver detalhes →'}
+              {isSold ? 'Vendido' : 'Ver detalhes →'}
             </span>
           </div>
 

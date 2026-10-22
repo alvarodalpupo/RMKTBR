@@ -1,5 +1,4 @@
 
-import React from 'react'
 import { motion } from 'framer-motion'
 import {ArrowLeft, Shield, Lock, Eye, Database, UserCheck} from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -15,7 +14,7 @@ const PoliticaPrivacidade = () => {
         >
           <Link 
             to="/cadastro" 
-            className="inline-flex items-center space-x-2 text-primary-red hover:text-turbo-secondary mb-8 transition-colors"
+            className="inline-flex items-center space-x-2 text-red-text hover:text-turbo-secondary mb-8 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="font-montserrat">Voltar ao cadastro</span>
@@ -24,7 +23,7 @@ const PoliticaPrivacidade = () => {
           <div className="bg-primary-gray border border-gray-800 rounded-2xl p-8">
             <div className="text-center mb-12">
               <div className="flex justify-center mb-4">
-                <Shield className="w-16 h-16 text-primary-red" />
+                <Shield className="w-16 h-16 text-red-text" />
               </div>
               <h1 className="font-bebas text-5xl text-white mb-4">
                 POLÍTICA DE PRIVACIDADE
@@ -56,7 +55,7 @@ const PoliticaPrivacidade = () => {
             <div className="space-y-8 text-gray-300 font-montserrat">
               <section>
                 <h2 className="text-2xl font-bebas text-white mb-4 flex items-center space-x-2">
-                  <Database className="w-6 h-6 text-primary-red" />
+                  <Database className="w-6 h-6 text-red-text" />
                   <span>1. INFORMAÇÕES QUE COLETAMOS</span>
                 </h2>
                 <div className="space-y-4">
@@ -83,7 +82,7 @@ const PoliticaPrivacidade = () => {
 
               <section>
                 <h2 className="text-2xl font-bebas text-white mb-4 flex items-center space-x-2">
-                  <Eye className="w-6 h-6 text-primary-red" />
+                  <Eye className="w-6 h-6 text-red-text" />
                   <span>2. COMO UTILIZAMOS SEUS DADOS</span>
                 </h2>
                 <div className="space-y-4">
@@ -150,7 +149,7 @@ const PoliticaPrivacidade = () => {
 
               <section>
                 <h2 className="text-2xl font-bebas text-white mb-4 flex items-center space-x-2">
-                  <UserCheck className="w-6 h-6 text-primary-red" />
+                  <UserCheck className="w-6 h-6 text-red-text" />
                   <span>5. SEUS DIREITOS (LGPD)</span>
                 </h2>
                 <div className="space-y-4">
@@ -169,7 +168,7 @@ const PoliticaPrivacidade = () => {
                   
                   <p className="mt-4">
                     <strong>5.2.</strong> Para exercer seus direitos, entre em contato através do e-mail: 
-                    <span className="text-primary-red"> privacidade@racemarketbr.com.br</span>
+                    <span className="text-red-text"> privacidade@racemarketbr.com.br</span>
                   </p>
                 </div>
               </section>
@@ -294,7 +293,7 @@ const PoliticaPrivacidade = () => {
 
             <div className="mt-8 text-center">
               <div className="flex justify-center mb-4">
-                <Lock className="w-8 h-8 text-primary-red" />
+                <Lock className="w-8 h-8 text-red-text" />
               </div>
               <p className="text-gray-400 font-montserrat">
                 RaceMarketBR - Seus dados protegidos, sua privacidade respeitada

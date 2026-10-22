@@ -16,7 +16,9 @@ const Anuncios = () => {
     searchByModel,
     clearModelSearch,
     showNoResultsMessage,
-    searchedModel
+    searchedModel,
+    loadError,
+    fetchListings
   } = useListingsStore()
   
   const [showFilters, setShowFilters] = useState(false)
@@ -169,7 +171,7 @@ const Anuncios = () => {
             {filters?.modelSearch && (
               <div className="text-center mt-2">
                 <span className="text-gray-400 font-montserrat text-sm">
-                  Buscando por: <span className="text-primary-red font-600">"{filters.modelSearch}"</span>
+                  Buscando por: <span className="text-red-text font-600">"{filters.modelSearch}"</span>
                 </span>
                 <button
                   onClick={() => {
@@ -177,7 +179,7 @@ const Anuncios = () => {
                     setLocalSearchTerm('')
                     setSearchParams({})
                   }}
-                  className="ml-2 text-primary-red hover:text-white transition-colors"
+                  className="ml-2 text-red-text hover:text-white transition-colors"
                 >
                   <X className="w-4 h-4 inline" />
                 </button>
@@ -316,7 +318,7 @@ const Anuncios = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="bg-primary-gray border border-gray-800 rounded-xl p-8 max-w-2xl mx-auto"
               >
-                <AlertCircle className="w-16 h-16 text-primary-red mx-auto mb-4" />
+                <AlertCircle className="w-16 h-16 text-red-text mx-auto mb-4" />
                 <h3 className="font-bebas text-2xl text-white mb-4">
                   MODELO NÃO ENCONTRADO
                 </h3>
@@ -325,7 +327,7 @@ const Anuncios = () => {
                 </p>
                 {searchedModel && (
                   <p className="text-gray-400 font-montserrat mb-6">
-                    Busca realizada por: <span className="text-primary-red font-600">"{searchedModel}"</span>
+                    Busca realizada por: <span className="text-red-text font-600">"{searchedModel}"</span>
                   </p>
                 )}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -347,6 +349,13 @@ const Anuncios = () => {
                   </button>
                 </div>
               </motion.div>
+            </div>
+          )}
+
+          {loadError && (
+            <div role="alert" className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning/40 bg-warning/10 p-4 text-ink">
+              <span>{loadError}</span>
+              <button onClick={() => fetchListings()} className="rm-btn rm-btn--outline rm-btn--sm">TENTAR DE NOVO</button>
             </div>
           )}
 
