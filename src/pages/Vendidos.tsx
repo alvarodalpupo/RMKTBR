@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Car, Trophy, TrendingUp } from 'lucide-react';
+import { Car, Trophy, MapPin } from 'lucide-react';
 import CarCard from '../components/CarCard';
 import { useListingsStore } from '../stores/listingsStore';
-import { extrairValorNumerico } from '../utils/formatters';
 
 const Vendidos = () => {
   const {
@@ -25,9 +24,7 @@ const Vendidos = () => {
   // Obter estatísticas dos vendidos
   const soldListings = getSoldListings();
   const totalSold = soldListings.length;
-  const totalValue = soldListings.reduce((sum, listing) => {
-    return sum + extrairValorNumerico(listing.preco);
-  }, 0);
+  const statesCount = new Set(soldListings.map((listing) => listing.uf)).size;
 
   const categoriesCount = soldListings.reduce((acc, listing) => {
     acc[listing.categoria] = (acc[listing.categoria] || 0) + 1;
@@ -36,14 +33,6 @@ const Vendidos = () => {
 
   const topCategory = Object.entries(categoriesCount).sort((a, b) => b[1] - a[1])[0]?.[0];
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
 
   return (
     <div className="min-h-screen bg-primary-black pt-20">
@@ -79,11 +68,11 @@ const Vendidos = () => {
             <div className="text-gray-400 font-montserrat text-sm">Veículos vendidos</div>
           </div>
 
-          {/* Valor Total */}
+          {/* Estados */}
           <div className="bg-primary-gray border border-gray-800 rounded-xl p-6 text-center">
-            <TrendingUp className="w-8 h-8 text-green-500 mx-auto mb-3" />
-            <div className="font-bebas text-4xl text-white">{formatCurrency(totalValue)}</div>
-            <div className="text-gray-400 font-montserrat text-sm">Em negócios fechados</div>
+            <MapPin className="w-8 h-8 text-green-500 mx-auto mb-3" />
+            <div className="font-bebas text-4xl text-white">{statesCount}</div>
+            <div className="text-gray-400 font-montserrat text-sm">{statesCount === 1 ? 'Estado' : 'Estados'} com vendas</div>
           </div>
 
           {/* Categoria Mais Vendida */}
