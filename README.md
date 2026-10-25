@@ -22,14 +22,21 @@ Quem pode o quê é garantido **pelo banco** (Row Level Security), não pelo sit
 - O e-mail de quem anuncia sem conta fica numa tabela separada, visível só ao admin.
 - Contas banidas não publicam.
 
-Tudo isso está em `supabase/migrations/20261022000000_inicial.sql`.
+Tudo isso está em `supabase/migrations/`. As funções internas de checagem ficam no schema `private`, fora da API pública.
 
-Sem as chaves do Supabase, o site roda em **modo demonstração**: mostra anúncios de exemplo, nada é salvo e a tela de login oferece "entrar como usuário/admin" só para conhecer as telas.
+Com `VITE_DEMO=1`, o site roda em **modo demonstração**: mostra anúncios de exemplo, nada é salvo e a tela de login oferece "entrar como usuário/admin" só para conhecer as telas.
 
-## 1. Criar o banco no Supabase (uma vez)
+## Projeto Supabase em uso
+
+- Projeto: `racemarketbr` (organização racemarketbr, região São Paulo)
+- URL: `https://omlqjnzyernfcztpbxil.supabase.co`
+- O endereço e a chave **pública** já estão em `src/lib/supabase.ts`. Para rodar sem banco, use `VITE_DEMO=1 pnpm dev`.
+- Migrações já aplicadas: `20261022000000_inicial.sql` e `20261024000000_funcoes_privadas.sql`.
+
+## 1. Criar o banco no Supabase (projeto novo)
 
 1. Crie uma conta em supabase.com e um projeto novo (região **São Paulo**).
-2. No projeto, abra **SQL Editor → New query**, cole todo o conteúdo de `supabase/migrations/20261022000000_inicial.sql` e clique em **Run**. Pode rodar de novo sem quebrar nada.
+2. No projeto, abra **SQL Editor → New query**, cole e rode, nesta ordem, os arquivos de `supabase/migrations/` (`20261022000000_inicial.sql`, depois `20261024000000_funcoes_privadas.sql`). Podem rodar de novo sem quebrar nada.
 3. Em **Project Settings → API**, copie a **Project URL** e a **anon public key**.
 4. Em **Authentication → URL Configuration**:
    - **Site URL**: `https://racemarketbr.com.br`

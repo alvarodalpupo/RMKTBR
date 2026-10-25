@@ -1,12 +1,23 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+/**
+ * Projeto Supabase do RaceMarketBR. A chave abaixo é a *publishable* (pública):
+ * ela foi feita para ficar no site; quem protege os dados são as regras do banco
+ * (supabase/migrations). Nunca coloque aqui a chave "service_role"/secreta.
+ *
+ * As variáveis VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY substituem estes valores.
+ * VITE_DEMO=1 força o modo demonstração (anúncios de exemplo, nada é salvo).
+ */
+const PROJETO_URL = 'https://omlqjnzyernfcztpbxil.supabase.co'
+const PROJETO_CHAVE_PUBLICA = 'sb_publishable_naa4gJTd3FNwM0pZyPtGvQ_kcpjVrSb'
+
+const demo = import.meta.env.VITE_DEMO === '1'
+const url = demo ? undefined : (import.meta.env.VITE_SUPABASE_URL as string | undefined) || PROJETO_URL
+const anonKey = demo ? undefined : (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || PROJETO_CHAVE_PUBLICA
 
 /**
- * Cliente do Supabase. Fica `null` quando as chaves não foram configuradas:
- * nesse caso o site roda em **modo demonstração**, com anúncios de exemplo
- * na memória do navegador (nada é salvo).
+ * Cliente do Supabase. Fica `null` no modo demonstração: o site mostra
+ * anúncios de exemplo na memória do navegador (nada é salvo).
  */
 export const supabase: SupabaseClient | null =
   url && anonKey
