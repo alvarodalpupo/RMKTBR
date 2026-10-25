@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, Car, BarChart3, Settings, Clock, CheckCircle, X, Eye, MessageCircleDashed as MessageCircle, Shield, FileText, Search, UserCheck, Crown, Edit3, Download, Save, RotateCcw, Mail, Globe, Lock, Bell, Star, Palette, ShoppingCart, TrendingUp, Clock3, MailOpen, MessageSquareMore, Plus } from 'lucide-react'
+import { Users, Car, BarChart3, Settings, Clock, CheckCircle, X, Eye, MessageCircleDashed as MessageCircle, Shield, FileText, Search, UserCheck, Crown, Edit3, Download, Save, RotateCcw, Mail, Globe, Lock, Bell, Star, Palette, ShoppingCart, TrendingUp, Clock3, MailOpen, MessageSquareMore, Plus, Trash2 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useListingsStore, type Listing } from '../stores/listingsStore'
 import { useUsersStore, type User, type UserFilters } from '../stores/usersStore'
@@ -19,6 +19,52 @@ import ContactMessageCard from '../components/ContactMessageCard'
 import MessageResponse from '../components/MessageResponse'
 import toast from 'react-hot-toast'
 
+/** Botão "Excluir" que pede confirmação na própria tela antes de apagar. */
+const BotaoExcluir = ({ onConfirm, compacto = false }: { onConfirm: () => Promise<unknown>; compacto?: boolean }) => {
+  const [confirmando, setConfirmando] = useState(false)
+  const [excluindo, setExcluindo] = useState(false)
+  if (confirmando) {
+    return (
+      <div className="flex items-center gap-2" role="group" aria-label="Confirmar exclusão">
+        <span className="text-sm text-gray-300">Excluir de vez?</span>
+        <button
+          disabled={excluindo}
+          onClick={async () => {
+            setExcluindo(true)
+            await onConfirm()
+            setExcluindo(false)
+            setConfirmando(false)
+          }}
+          className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-montserrat font-600 text-sm disabled:opacity-50"
+        >
+          {excluindo ? 'Excluindo…' : 'Sim, excluir'}
+        </button>
+        <button onClick={() => setConfirmando(false)} className="text-gray-400 hover:text-white px-2 py-2 text-sm">
+          Cancelar
+        </button>
+      </div>
+    )
+  }
+  return compacto ? (
+    <button
+      onClick={() => setConfirmando(true)}
+      title="Excluir anúncio"
+      aria-label="Excluir anúncio"
+      className="p-2 bg-red-600/20 text-red-400 hover:bg-red-600/30 rounded-lg transition-colors"
+    >
+      <Trash2 className="w-4 h-4" />
+    </button>
+  ) : (
+    <button
+      onClick={() => setConfirmando(true)}
+      className="bg-red-600/20 text-red-400 hover:bg-red-600/30 px-4 py-2 rounded-lg font-montserrat font-600 transition-colors flex items-center space-x-2"
+    >
+      <Trash2 className="w-4 h-4" />
+      <span>Excluir</span>
+    </button>
+  )
+}
+
 const Admin = () => {
   const { user } = useAuthStore()
   const { 
@@ -27,6 +73,7 @@ const Admin = () => {
     rejectListing, 
     updateListing, 
     markAsSold, 
+    deleteListing,
     getSoldListings, 
     getListingsByStatus 
   } = useListingsStore()
@@ -99,19 +146,15 @@ const Admin = () => {
   const [, setSelectedMessage] = useState<ContactMessage | null>(null)
 
   // Safe initialization effect
+  // Usuários: carrega ao abrir o Admin e atualiza só quando a aba Usuários é aberta
+  // (antes recarregava a cada troca de aba, consultando o banco sem necessidade)
   useEffect(() => {
-    const initializeData = async () => {
-      try {
-        await initializeUsers()
-        if (activeTab === 'customizacao') {
-          await fetchConfigs()
-        }
-      } catch (error) {
-        console.error('Error initializing admin data:', error)
-      }
-    }
-    
-    initializeData()
+    void initializeUsers()
+  }, [initializeUsers])
+
+  useEffect(() => {
+    if (activeTab === 'usuarios') void initializeUsers()
+    if (activeTab === 'customizacao') void fetchConfigs()
   }, [activeTab, initializeUsers, fetchConfigs])
 
   // Memoized data to prevent unnecessary re-renders
@@ -183,6 +226,10 @@ const Admin = () => {
       toast.error('Erro ao alterar destaque')
     }
   }, [updateListing])
+
+  const handleDelete = React.useCallback(async (listingId: string) => {
+    if (await deleteListing(listingId)) toast.success('Anúncio excluído.')
+  }, [deleteListing])
 
   const handleMarkAsSold = React.useCallback(async (listingId: string) => {
     setSelectedListingId(listingId)
@@ -713,6 +760,8 @@ const Admin = () => {
                             <Eye className="w-4 h-4" />
                             <span>Visualizar</span>
                           </button>
+
+                          <BotaoExcluir onConfirm={() => handleDelete(listing.id)} />
                         </div>
                       </div>
                     </div>
@@ -850,10 +899,14 @@ const Admin = () => {
                       
                       <button
                         onClick={() => handleMarkAsSold(listing.id)}
+                        title="Marcar como vendido"
+                        aria-label="Marcar como vendido"
                         className="p-2 bg-green-600/20 text-green-400 hover:bg-green-600/30 rounded-lg transition-colors"
                       >
                         <ShoppingCart className="w-4 h-4" />
                       </button>
+
+                      <BotaoExcluir compacto onConfirm={() => handleDelete(listing.id)} />
                     </div>
                   </div>
                 </div>
@@ -932,6 +985,7 @@ const Admin = () => {
                         <span className="bg-green-600/20 text-green-400 px-3 py-1 rounded-lg text-sm font-montserrat font-600">
                           VENDIDO
                         </span>
+                        <BotaoExcluir compacto onConfirm={() => handleDelete(listing.id)} />
                       </div>
                     </div>
                   </div>
