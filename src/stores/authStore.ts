@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase, isDemoMode, mensagemDeErro, enviarSemEsperar } from '../lib/supabase'
 
 /**
- * Autenticação com Supabase Auth: e-mail e senha, Google e recuperação de senha.
+ * Autenticação com Supabase Auth: e-mail e senha e recuperação de senha.
  *
  * O papel (user/admin) vem da tabela `profiles`, protegida no banco: o usuário
  * não consegue se promover. A checagem aqui só decide o que aparece na tela;
@@ -36,7 +36,6 @@ interface AuthState {
   ready: boolean
   login: (email: string, password: string) => Promise<AuthResult>
   register: (nome: string, email: string, password: string) => Promise<AuthResult>
-  loginWithGoogle: () => Promise<AuthResult>
   forgotPassword: (email: string) => Promise<AuthResult>
   updatePassword: (password: string) => Promise<AuthResult>
   logout: () => Promise<void>
@@ -118,16 +117,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return { ok: true }
   },
 
-  loginWithGoogle: async () => {
-    if (!supabase) return demoIndisponivel
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${siteUrl()}painel` },
-    })
-    if (error) return { ok: false, error: mensagemDeErro(error, 'Não foi possível entrar com o Google.') }
-    return { ok: true } // o navegador vai para o Google e volta logado
-  },
-
   forgotPassword: async (email) => {
     if (!supabase) return demoIndisponivel
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
@@ -172,7 +161,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 }))
 
-// Sessão salva, login pelo Google (volta com o token na URL) e outras abas.
+// Sessão salva, links de confirmação/recuperação (token na URL) e outras abas.
 if (supabase) {
   void useAuthStore.getState().refresh()
   supabase.auth.onAuthStateChange((_event, session) => {

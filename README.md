@@ -9,7 +9,7 @@ Feito com React 18, TypeScript, Vite, Tailwind CSS e Zustand. Banco de dados, lo
 | O quê | Onde |
 | --- | --- |
 | Anúncios, mensagens de contato, notificações, configurações | Tabelas PostgreSQL no Supabase |
-| Contas e login (e-mail/senha e Google) | Supabase Auth |
+| Contas e login (e-mail e senha) | Supabase Auth |
 | Fotos dos anúncios e de perfil | Supabase Storage, bucket `anuncios` (reduzidas para WebP antes de enviar) |
 
 Quem pode o quê é garantido **pelo banco** (Row Level Security), não pelo site:
@@ -41,7 +41,6 @@ Com `VITE_DEMO=1`, o site roda em **modo demonstração**: mostra anúncios de e
 4. Em **Authentication → URL Configuration**:
    - **Site URL**: `https://racemarketbr.com.br`
    - **Redirect URLs**: adicione `https://racemarketbr.com.br/**` e `http://localhost:5173/**`
-5. (Opcional) Login com Google: **Authentication → Providers → Google**, cole o Client ID e o Secret criados no Google Cloud Console.
 
 ### Tornar-se administrador
 
