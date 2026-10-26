@@ -3,8 +3,10 @@ import { motion } from 'framer-motion';
 import { Car, Trophy, MapPin } from 'lucide-react';
 import CarCard from '../components/CarCard';
 import { useListingsStore } from '../stores/listingsStore';
+import { useSeo } from '../seo/useSeo';
 
 const Vendidos = () => {
+  useSeo({ caminho: '/vendidos' });
   const {
     filteredListings,
     setFilters,

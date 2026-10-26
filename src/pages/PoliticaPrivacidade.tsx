@@ -2,8 +2,10 @@
 import { motion } from 'framer-motion'
 import {ArrowLeft, Shield, Lock, Eye, Database, UserCheck} from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useSeo } from '../seo/useSeo';
 
 const PoliticaPrivacidade = () => {
+  useSeo({ caminho: '/privacidade' });
   return (
     <div className="pt-20 min-h-screen bg-primary-black">
       <div className="container mx-auto px-4 py-12">

@@ -10,8 +10,10 @@ import { useNotificationsStore } from '../stores/notificationsStore'
 import { Link } from 'react-router-dom'
 import { estadosCidades } from '../data/estados-cidades'
 import toast from 'react-hot-toast'
+import { useSeo } from '../seo/useSeo';
 
 const Painel = () => {
+  useSeo({ caminho: '/painel', titulo: 'RaceMarketBR', naoIndexar: true });
   const { user, isAuthenticated, signOut } = useAuth()
   const { profile, updating, updateProfile, uploadAvatar, removeAvatar } = useUserProfile()
   const { sessions, loading: sessionsLoading, endSession, endAllOtherSessions } = useUserSessions()

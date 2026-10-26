@@ -1,12 +1,30 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {Filter, X, Search, AlertCircle} from 'lucide-react'
 import CarCard from '../components/CarCard'
 import { useListingsStore } from '../stores/listingsStore'
+import { useSeo, paginaSeo } from '../seo/useSeo'
 
-const Anuncios = () => {
+interface AnunciosProps {
+  /** Página de categoria (/carros-turbo etc.): já abre filtrada e com texto próprio. */
+  rota?: string
+}
+
+const Anuncios = ({ rota = '/anuncios' }: AnunciosProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
+  const pagina = paginaSeo(rota)
+  const categoriaDaRota = pagina && 'categoria' in pagina ? (pagina.categoria as string) : undefined
+  useSeo({
+    caminho: rota,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: pagina?.titulo,
+      description: pagina?.descricao,
+      url: `https://racemarketbr.com.br${rota}`,
+    },
+  })
   const { 
     filteredListings, 
     isLoading, 
@@ -33,7 +51,7 @@ const Anuncios = () => {
   // Detectar busca por modelo na URL
   useEffect(() => {
     const modeloParam = searchParams.get('modelo')
-    const categoriaParam = searchParams.get('categoria')
+    const categoriaParam = categoriaDaRota ?? searchParams.get('categoria')
     
     if (modeloParam) {
       // Busca específica por modelo
@@ -44,7 +62,7 @@ const Anuncios = () => {
       setFilters({ category: categoriaParam })
       setSelectedCategory(categoriaParam)
     }
-  }, [searchParams, searchByModel, setFilters])
+  }, [searchParams, searchByModel, setFilters, categoriaDaRota])
 
   // Sincronizar filtros com o estado local
   useEffect(() => {
@@ -134,12 +152,31 @@ const Anuncios = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <h1 className="font-bebas text-4xl md:text-6xl text-white mb-4">
-            ANÚNCIOS DE VEÍCULOS
+          <h1 className="font-display text-4xl md:text-6xl text-ink mb-4">
+            {pagina && 'h1' in pagina ? pagina.h1 : 'CARROS PREPARADOS À VENDA'}
           </h1>
-          <p className="text-gray-400 font-montserrat text-lg">
-            Encontre o veículo dos seus sonhos
+          <p className="text-ink-muted font-sans text-lg max-w-3xl mx-auto">
+            {pagina && 'intro' in pagina
+              ? pagina.intro
+              : 'Carros turbo, aspirados, originais e de pista à venda em todo o Brasil. Filtre por categoria, preço e cidade e fale direto com o dono.'}
           </p>
+          <nav aria-label="Categorias" className="mt-6 flex flex-wrap justify-center gap-2">
+            {[
+              ['/carros-turbo', 'turbo', 'Turbo'],
+              ['/carros-aspirados', 'aspirado', 'Aspirados'],
+              ['/carros-originais', 'original', 'Originais'],
+              ['/carros-de-pista', 'pista', 'Pista'],
+            ].map(([href, cat, label]) => (
+              <Link
+                key={href}
+                to={href}
+                aria-current={rota === href ? 'page' : undefined}
+                className={`rm-badge rm-badge--${cat} ${rota === href ? 'ring-2 ring-ink ring-offset-2 ring-offset-bg' : 'opacity-80 hover:opacity-100'}`}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
         </motion.div>
 
         {/* Search and Filters */}

@@ -57,6 +57,10 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/anuncios" element={<Anuncios />} />
+              <Route path="/carros-turbo" element={<Anuncios key="turbo" rota="/carros-turbo" />} />
+              <Route path="/carros-aspirados" element={<Anuncios key="aspirado" rota="/carros-aspirados" />} />
+              <Route path="/carros-originais" element={<Anuncios key="original" rota="/carros-originais" />} />
+              <Route path="/carros-de-pista" element={<Anuncios key="pista" rota="/carros-de-pista" />} />
               <Route path="/anuncio/:id" element={<AnuncioDetalhes />} />
               <Route path="/anuncie-seu-carro" element={<AnuncieSeuCarro />} />
               <Route path="/vendidos" element={<Vendidos />} />

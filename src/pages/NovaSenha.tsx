@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
+import { useSeo } from '../seo/useSeo';
 
 /** Destino do link "Esqueci minha senha": o Supabase já abre a sessão pelo link. */
 const NovaSenha = () => {
+  useSeo({ caminho: '/nova-senha', titulo: 'RaceMarketBR', naoIndexar: true });
   const { updatePassword, isAuthenticated, ready } = useAuthStore();
   const navigate = useNavigate();
   const [senha, setSenha] = useState('');

@@ -4,6 +4,7 @@ import { Mail, Lock, User as UserIcon, Eye, EyeOff, LogIn, UserPlus, ShieldCheck
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
 import { isDemoMode } from '../lib/supabase';
+import { useSeo } from '../seo/useSeo';
 
 interface LoginProps {
   mode?: 'login' | 'cadastro';
@@ -19,6 +20,7 @@ const inputClass =
 
 const Login = ({ mode = 'login' }: LoginProps) => {
   const isSignup = mode === 'cadastro';
+  useSeo({ caminho: isSignup ? '/cadastro' : '/login', titulo: isSignup ? 'Criar conta | RaceMarketBR' : 'Entrar | RaceMarketBR', naoIndexar: true });
   const { login, register, forgotPassword, loginDemo, isAuthenticated, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();

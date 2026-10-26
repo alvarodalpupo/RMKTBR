@@ -1,11 +1,13 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, MessageCircleDashed as MessageCircle, ArrowLeft, Share2, Heart, Flame, Zap, CheckCircle, Flag, Star, Cog } from 'lucide-react';
 import { useListingsStore } from '../stores/listingsStore';
 import PowerTorqueBar from '../components/PowerTorqueBar';
 import toast from 'react-hot-toast';
+import { useSeo } from '../seo/useSeo';
+import { seoDoAnuncio } from '../seo/anuncio';
 
 const AnuncioDetalhes = () => {
   const { id } = useParams<{id: string;}>();
@@ -15,6 +17,9 @@ const AnuncioDetalhes = () => {
   const viewsIncrementedRef = useRef(false);
 
   const listing = listings.find((l) => l.id === id);
+
+  const seo = useMemo(() => seoDoAnuncio(listing), [listing]);
+  useSeo({ caminho: `/anuncio/${id}`, ...seo, naoIndexar: !!listing && !['publicado', 'vendido'].includes(listing.status) });
 
   const listingId = listing?.id;
   useEffect(() => {

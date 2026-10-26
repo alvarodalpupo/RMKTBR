@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Regera o site a cada 6 horas para os anúncios novos entrarem no sitemap
+  # e ganharem página própria para o Google
+  schedule:
+    - cron: '17 */6 * * *'
 
 permissions:
   contents: read
@@ -36,7 +40,7 @@ jobs:
       - name: Verificar tipos e código
         run: pnpm typecheck && pnpm lint
 
-      - name: Gerar o site
+      - name: Gerar o site (+ páginas para o Google, sitemap e robots.txt)
         run: pnpm build
         env:
           # Sem estas duas, o site sobe em modo demonstração (anúncios de exemplo).
@@ -44,9 +48,6 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_INSTAGRAM_ACCESS_TOKEN: ${{ vars.VITE_INSTAGRAM_ACCESS_TOKEN }}
-
-      # Site de uma página só: qualquer endereço (/anuncios, /anuncio/123) abre o app
-      - run: cp dist/index.html dist/404.html
 
       - uses: actions/configure-pages@v5
 

@@ -6,8 +6,33 @@ import { Search, Filter, TrendingUp, Zap, Wind, Trophy, Settings, CheckCircle, C
 import CarCard from '../components/CarCard';
 import InstagramFeed from '../components/InstagramFeed';
 import { useListingsStore } from '../stores/listingsStore';
+import { useSeo } from '../seo/useSeo';
+
+const jsonLdHome = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      name: 'RaceMarketBR',
+      url: 'https://racemarketbr.com.br/',
+      inLanguage: 'pt-BR',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://racemarketbr.com.br/anuncios?modelo={search_term_string}',
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      name: 'RaceMarketBR',
+      url: 'https://racemarketbr.com.br/',
+      logo: 'https://racemarketbr.com.br/favicon.svg',
+    },
+  ],
+};
 
 const Home = () => {
+  useSeo({ caminho: '/', jsonLd: jsonLdHome });
   const { listings, isLoading, getSoldListings } = useListingsStore();
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
@@ -177,7 +202,7 @@ const Home = () => {
               className="group">
 
                 <Link
-                to={`/anuncios?categoria=${categoria.id}`}
+                to={({ turbo: '/carros-turbo', aspirado: '/carros-aspirados', original: '/carros-originais', pista: '/carros-de-pista' } as Record<string, string>)[categoria.id] ?? '/anuncios'}
                 className="block w-full">
 
                   <div className={`relative h-64 rounded-xl border-2 ${categoria.borderColor} ${categoria.hoverColor} ${categoria.bgColor} p-8 transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl overflow-hidden`}>
@@ -258,6 +283,37 @@ const Home = () => {
           </div>
         </section>
       }
+
+      {/* Texto para quem chega pelo Google */}
+      <section className="py-16 bg-bg border-t border-line" aria-labelledby="sobre-titulo">
+        <div className="container mx-auto px-4 grid gap-10 md:grid-cols-2">
+          <div>
+            <h2 id="sobre-titulo" className="font-display text-4xl text-ink mb-4">
+              COMPRAR CARRO TURBO OU PREPARADO
+            </h2>
+            <p className="text-ink-muted leading-relaxed mb-4">
+              No RaceMarketBR você encontra carro turbo, aspirado, original e de pista anunciado por quem entende.
+              Cada anúncio mostra potência em whp, torque em kgfm, tipo de tração e a preparação feita, para você
+              comparar antes de chamar o dono no WhatsApp.
+            </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-red-text font-600">
+              <Link to="/carros-turbo" className="hover:underline">Carros turbo à venda</Link>
+              <Link to="/carros-aspirados" className="hover:underline">Carros aspirados</Link>
+              <Link to="/carros-originais" className="hover:underline">Esportivos originais</Link>
+              <Link to="/carros-de-pista" className="hover:underline">Carros de pista</Link>
+            </div>
+          </div>
+          <div>
+            <h2 className="font-display text-4xl text-ink mb-4">VENDER CARRO PREPARADO</h2>
+            <p className="text-ink-muted leading-relaxed mb-4">
+              Carro preparado perde valor em classificado comum, onde o comprador só vê "modificado". Aqui ele é
+              valorizado pelo que tem: anuncie grátis com fotos, ficha técnica e contato direto, e fale com
+              compradores que procuram exatamente o seu projeto.
+            </p>
+            <Link to="/anuncie-seu-carro" className="rm-btn rm-btn--outline rm-btn--sm">ANUNCIAR GRÁTIS</Link>
+          </div>
+        </div>
+      </section>
 
       {/* Instagram Feed Section */}
       <InstagramFeed />

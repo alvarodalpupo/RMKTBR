@@ -11,8 +11,10 @@ import CidadeSelector from '../components/CidadeSelector';
 import TrustBadge from '../components/TrustBadge';
 import SecurityTooltip from '../components/SecurityTooltip';
 import toast from 'react-hot-toast';
+import { useSeo } from '../seo/useSeo';
 
 const AnuncieSeuCarro = () => {
+  useSeo({ caminho: '/anuncie-seu-carro' });
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { createListing, isLoading } = useListingsStore();

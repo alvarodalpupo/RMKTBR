@@ -1,0 +1,100 @@
+{
+  "site": {
+    "nome": "RaceMarketBR",
+    "url": "https://racemarketbr.com.br",
+    "imagem": "/og-image.png",
+    "descricaoPadrao": "Compre e venda carro turbo, aspirado, original e de pista no RaceMarketBR. Classificados de carros preparados com potência, torque e ficha técnica completa. Anuncie grátis."
+  },
+  "paginas": [
+    {
+      "rota": "/",
+      "titulo": "RaceMarketBR — Comprar e vender carro turbo, aspirado e preparado",
+      "descricao": "Classificados de carros preparados: compre e venda carro turbo, aspirado, original e de pista em todo o Brasil. Potência, torque e ficha técnica completa. Anuncie grátis.",
+      "prioridade": 1.0,
+      "frequencia": "daily"
+    },
+    {
+      "rota": "/anuncios",
+      "titulo": "Carros preparados à venda — turbo, aspirado, original e pista | RaceMarketBR",
+      "descricao": "Veja carros turbo, aspirados, originais e de pista à venda. Filtre por categoria, preço e cidade e fale direto com o dono pelo WhatsApp.",
+      "prioridade": 0.9,
+      "frequencia": "daily"
+    },
+    {
+      "rota": "/carros-turbo",
+      "categoria": "turbo",
+      "titulo": "Carros turbo à venda — comprar carro turbinado | RaceMarketBR",
+      "h1": "CARROS TURBO À VENDA",
+      "descricao": "Carros turbo à venda em todo o Brasil: Golf GTI, Civic Si, WRX, Jetta e muito mais. Veja potência em whp, torque e preparação de cada carro e fale com o dono.",
+      "intro": "Procurando carro turbo? Aqui você encontra carros turbinados de fábrica e preparados, com stage, potência em whp e torque informados pelo dono. Compare, filtre por preço e cidade e chame no WhatsApp.",
+      "prioridade": 0.9,
+      "frequencia": "daily"
+    },
+    {
+      "rota": "/carros-aspirados",
+      "categoria": "aspirado",
+      "titulo": "Carros aspirados preparados à venda | RaceMarketBR",
+      "h1": "CARROS ASPIRADOS À VENDA",
+      "descricao": "Carros aspirados preparados à venda: comando, cabeçote, ITB e motores de alta rotação. Veja a ficha técnica de cada carro e negocie direto com o dono.",
+      "intro": "Para quem curte giro alto: carros aspirados com preparação de comando, cabeçote, admissão individual e escape. Veja potência, torque e o que foi feito em cada motor.",
+      "prioridade": 0.8,
+      "frequencia": "daily"
+    },
+    {
+      "rota": "/carros-originais",
+      "categoria": "original",
+      "titulo": "Carros esportivos originais à venda | RaceMarketBR",
+      "h1": "CARROS ORIGINAIS À VENDA",
+      "descricao": "Carros esportivos originais de fábrica à venda: modelos conservados, de coleção e sem modificações. Compare preços e fale com o dono pelo WhatsApp.",
+      "intro": "Carros esportivos e clássicos na configuração de fábrica, para quem valoriza originalidade. Veja ano, quilometragem informada pelo dono e detalhes de conservação.",
+      "prioridade": 0.8,
+      "frequencia": "daily"
+    },
+    {
+      "rota": "/carros-de-pista",
+      "categoria": "pista",
+      "titulo": "Carros de pista, track day e arrancada à venda | RaceMarketBR",
+      "h1": "CARROS DE PISTA À VENDA",
+      "descricao": "Carros de pista à venda: track day, arrancada e drift. Gaiola, banco concha, preparação extrema e ficha técnica completa. Negocie direto com o dono.",
+      "intro": "Carros prontos para track day, arrancada e drift, com gaiola, freios, suspensão e motor preparados. Veja a ficha técnica e fale com quem conhece o carro.",
+      "prioridade": 0.8,
+      "frequencia": "daily"
+    },
+    {
+      "rota": "/vendidos",
+      "titulo": "Carros vendidos no RaceMarketBR",
+      "descricao": "Veja os carros turbo, aspirados e preparados que já foram vendidos pelo RaceMarketBR.",
+      "prioridade": 0.5,
+      "frequencia": "weekly"
+    },
+    {
+      "rota": "/anuncie-seu-carro",
+      "titulo": "Vender carro turbo ou preparado — anuncie grátis | RaceMarketBR",
+      "descricao": "Venda seu carro turbo, aspirado ou preparado para quem entende do assunto. Anúncio grátis com fotos, potência, torque e contato direto pelo WhatsApp.",
+      "prioridade": 0.9,
+      "frequencia": "monthly"
+    },
+    {
+      "rota": "/contato",
+      "titulo": "Contato | RaceMarketBR",
+      "descricao": "Fale com a equipe do RaceMarketBR: dúvidas, parcerias e suporte para anunciantes.",
+      "prioridade": 0.4,
+      "frequencia": "yearly"
+    },
+    {
+      "rota": "/termos",
+      "titulo": "Termos de uso | RaceMarketBR",
+      "descricao": "Termos de uso do RaceMarketBR, classificados de carros preparados.",
+      "prioridade": 0.2,
+      "frequencia": "yearly"
+    },
+    {
+      "rota": "/privacidade",
+      "titulo": "Política de privacidade | RaceMarketBR",
+      "descricao": "Como o RaceMarketBR trata os seus dados pessoais.",
+      "prioridade": 0.2,
+      "frequencia": "yearly"
+    }
+  ],
+  "naoIndexar": ["/login", "/cadastro", "/nova-senha", "/painel", "/admin"]
+}

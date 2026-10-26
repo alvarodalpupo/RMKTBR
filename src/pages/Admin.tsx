@@ -18,6 +18,7 @@ import PowerTorqueBar from '../components/PowerTorqueBar'
 import ContactMessageCard from '../components/ContactMessageCard'
 import MessageResponse from '../components/MessageResponse'
 import toast from 'react-hot-toast'
+import { useSeo } from '../seo/useSeo';
 
 /** Botão "Excluir" que pede confirmação na própria tela antes de apagar. */
 const BotaoExcluir = ({ onConfirm, compacto = false }: { onConfirm: () => Promise<unknown>; compacto?: boolean }) => {
@@ -66,6 +67,7 @@ const BotaoExcluir = ({ onConfirm, compacto = false }: { onConfirm: () => Promis
 }
 
 const Admin = () => {
+  useSeo({ caminho: '/admin', titulo: 'RaceMarketBR', naoIndexar: true });
   const { user } = useAuthStore()
   const { 
     listings, 

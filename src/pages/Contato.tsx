@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { MessageCircleDashed as MessageCircle, Instagram, Mail, Send, MapPin, Clock, Shield, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useContactMessagesStore } from '../stores/contactMessagesStore';
+import { useSeo } from '../seo/useSeo';
 
 interface ContactForm {
   name: string;
@@ -14,6 +15,7 @@ interface ContactForm {
 }
 
 const Contato = () => {
+  useSeo({ caminho: '/contato' });
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<ContactForm>();
   const { addMessage } = useContactMessagesStore();
 
